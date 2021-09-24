@@ -1,6 +1,6 @@
 #include "LibReseaux.h"
 
-int main(void)
+int main()
 {
 	int ip;
 	struct sockaddr_in adresse;
@@ -19,5 +19,5 @@ int main(void)
 
 	Connect_Client(ip, (struct sockaddr*)&adresse, sizeof(struct sockaddr_in));
 
-	return 0;
+	return EXIT_SUCCESS;
 }
