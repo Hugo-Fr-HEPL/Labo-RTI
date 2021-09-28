@@ -1,5 +1,4 @@
 .SILENT:
-
 OBJET = LibReseaux.o
 GPP = g++ -m64 -Wall -D SUN -D CPP -lsocket -lnsl
 
