@@ -1,4 +1,4 @@
-#include "LibReseaux.h"
+#include "reseaux.h"
 
 int main(void)
 {

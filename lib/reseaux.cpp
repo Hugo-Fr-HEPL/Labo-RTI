@@ -1,4 +1,4 @@
-#include "LibReseaux.h"
+#include "reseaux.h"
 
 
 int Create_Socket(int ipaddr, int type, int protocole)

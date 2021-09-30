@@ -1,5 +1,5 @@
 .SILENT:
-OBJET = LibReseaux.o
+OBJET = reseaux.o
 GPP = g++ -m64 -Wall -D CPP -I lib/
 
 ALL: Serveur Client
@@ -16,6 +16,6 @@ Client: $(OBJET) client.cpp
 
 
 # Objets
-LibReseaux.o: lib/LibReseaux.cpp lib/LibReseaux.h
-	echo Creation de LibReseaux.o
-	$(GPP) lib/LibReseaux.cpp -c
+reseaux.o: lib/reseaux.cpp lib/reseaux.h
+	echo Creation de Reseaux.o
+	$(GPP) lib/reseaux.cpp -c
