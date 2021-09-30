@@ -1,6 +1,6 @@
 .SILENT:
 OBJET = reseaux.o
-GPP = g++ -m64 -Wall -D CPP -I lib/
+GPP = g++ -m64 -Wall -D CPP -Ilib/ #-lnsl -lsocket
 
 ALL: Serveur Client
 
