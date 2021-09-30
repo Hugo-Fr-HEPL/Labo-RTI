@@ -27,9 +27,9 @@ int main(void)
 
 	Bind_Socket(ip, (struct sockaddr*)&adresse, sizeof(struct sockaddr_in));
 
-	Listen_Serveur(ip, SOMAXCONN);
+	Listen_Server(ip, SOMAXCONN);
 
-	HSocketService = Accept_Serveur(ip, (struct sockaddr*)&adresse, sizeof(struct sockaddr_in));
+	HSocketService = Accept_Server(ip, (struct sockaddr*)&adresse, sizeof(struct sockaddr_in));
 
 	Receive_Message(HSocketService, msgClient, MAXSTRING, 0);
 
