@@ -1,21 +1,43 @@
 #include "reseaux.h"
 
 
-int Create_Socket(int ipaddr, int type, int protocole)
+int Create_Socket(int domain, int type, int protocol)
 {
-	int handsock = socket(ipaddr,type,protocole);
-	if(handsock == -1)
+	int handleSocket = socket(domain, type, protocol);
+	if(handleSocket == -1)
 	{
 		printf("Erreur de creation de la socket %d\n", errno);
 		exit(1);
 	}
-	printf("socket n°: %d\n", handsock);
-	return handsock;
+	printf("socket n°: %d\n", handleSocket);
+	return handleSocket;
 }
 
-void Bind_Socket(int handle, const struct sockaddr *adresse, int taille)
+sockaddr_in Infos_Host()
 {
-	int reussite = bind(handle, adresse, taille);
+	struct sockaddr_in adresse;
+	properties prop;
+
+	prop = Load_Properties(FILENAME);
+
+	struct hostent *infosHost = gethostbyname(prop.machine);
+	if( infosHost == 0)
+	{
+		printf("Erreur d'acquisition d'infos sur le host %d\n", errno);
+		exit(1);
+	}
+
+	memset(&adresse, 0, sizeof(struct sockaddr_in));
+	adresse.sin_family = AF_INET;
+	adresse.sin_port = htons(prop.port);
+	memcpy(&adresse.sin_addr, infosHost->h_addr, infosHost->h_length);
+
+	return adresse;
+}
+
+void Bind_Socket(int handleSocket, const struct sockaddr *adress, int size)
+{
+	int reussite = bind(handleSocket, adress, size);
 	if(reussite == -1)
 	{
 		printf("Erreur sur le bind de la socket %d\n", errno);
@@ -24,39 +46,39 @@ void Bind_Socket(int handle, const struct sockaddr *adresse, int taille)
 }
 
 
-void Listen_Server(int handle, int nbrconnexion)
+void Listen_Server(int handleSocket, int nbConnection)
 {
-	int reussite = listen(handle, nbrconnexion);
+	int reussite = listen(handleSocket, nbConnection);
 	if(reussite == -1)
 	{
 		printf("Erreur sur l'ecoute %d\n", errno);
-		close(handle);
+		close(handleSocket);
 		exit(1);
 	}
 }
 
-int Accept_Server(int handle, struct sockaddr *adresse, int taille)
+int Accept_Server(int handleSocket, struct sockaddr *adress, int size)
 {
-	int HSocketService;
-	unsigned int t = taille;
-	HSocketService = accept(handle, adresse, &t);
-	if(HSocketService == -1)
+	int hSocketService;
+	//unsigned int t = size;
+	hSocketService = accept(handleSocket, adress, (unsigned int*)&size);
+	if(hSocketService == -1)
 	{
 		printf("Erreur sur l'acceptation %d\n", errno);
-		close(handle);
+		close(handleSocket);
 		exit(1);
 	}
-	return HSocketService;
+	return hSocketService;
 }
 
 
-void Connect_Client(int handle, struct sockaddr *adresse, int taille)
+void Connect_Client(int handleSocket, struct sockaddr *adress, int size)
 {
-	int reussite = connect(handle, adresse, taille);
+	int reussite = connect(handleSocket, adress, size);
 	if(reussite == -1)
 	{
 		printf("Erreur de connexion %d\n", errno);
-		close(handle);
+		close(handleSocket);
 		exit(1);
 	}
 }
@@ -89,47 +111,50 @@ properties Load_Properties(const char* nomFichier)
 	properties prop;
 	FILE *fp;
 
-	char hostname[200];
-	gethostname(hostname, 200);
-
 	fp = fopen(nomFichier, "r+t");
 	if(fp == NULL)
 	{
 		fp = fopen(nomFichier, "w+t");
-		prop.nomMachine = (char*)malloc(strlen(hostname));
-		strcpy(prop.nomMachine, hostname);
-		prop.port = 50000;
 
-		fprintf(fp, "Machine:");
-		fprintf(fp, prop.nomMachine, sizeof(prop.nomMachine));
-		fprintf(fp, ";\r");
-		fprintf(fp, "Port:50000;");
+		char hostname[200];
+		gethostname(hostname, 200);
+
+		prop.machine = (char*)malloc(strlen(hostname));
+		strcpy(prop.machine, hostname);
+		prop.port = 50000;
+		prop.nbServer = 5;
+
+		fprintf(fp, "Host=");
+		fprintf(fp, prop.machine, sizeof(prop.machine));
+		fprintf(fp, ";\rPort=50000;\rServeurs=5;");
 	}
 	else
 	{
 		fseek(fp, 0, SEEK_END);
 		int size = ftell(fp);
 		rewind(fp);
-		
-		char txt[200], res[200], res1[200];
-		fread(txt, size, 1, fp);
-		Read_Lines(1, txt, res);
-		Read_Lines(2, txt, res1);
 
-		prop.nomMachine = (char*)malloc(strlen(res));
-		strcpy(prop.nomMachine, res);
+		char txt[200];
+		fread(txt, size, 1, fp);
+		char* res = Read_Lines(1, txt);
+		char* res1 = Read_Lines(2, txt);
+
+		prop.machine = (char*)malloc(strlen(res));
+		strcpy(prop.machine, res);
 
 		prop.port = atoi(res1);
 	}
 	fclose(fp);
+
 	return prop;
 }
 
-void Read_Lines(int ligne, char* txt, char* ret)
+char* Read_Lines(int line, char* txt)
 {
+	char prop[200];
 	char l;
 	int i = 0, j = 0;
-	while(i < ligne)
+	while(i < line)
 	{
 		l = *txt;
 		if(l == ':')
@@ -152,10 +177,15 @@ void Read_Lines(int ligne, char* txt, char* ret)
 		}
 		else
 		{
-			*(ret+j) = *txt;
+			prop[j] = *txt;
 			j++;
 			txt++;
 		}
 	}
-	*(ret+j) = '\0';
+	prop[j] = '\0';
+
+char* ret = (char*)malloc(sizeof(prop));
+strcpy(ret, prop);
+
+	return ret;
 }
