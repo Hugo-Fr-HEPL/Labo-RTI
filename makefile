@@ -1,6 +1,6 @@
 .SILENT:
 OBJET = reseaux.o
-GPP = g++ -m64 -Wall -D CPP -Ilib/ #-lnsl -lsocket
+GPP = g++ -m64 -Wall -D CPP -Ilib/ -pthread #-lnsl -lsocket
 
 
 # Executable

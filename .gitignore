@@ -2,5 +2,6 @@
 *.txt
 Serveur
 Client
+Serv
 serveur.cpp
 client.cpp

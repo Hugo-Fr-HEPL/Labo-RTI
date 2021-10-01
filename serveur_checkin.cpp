@@ -120,7 +120,7 @@ void* fctThread(void* param) {
 // Dialogue Thread-Client
         finDialogue = 0;
         do {
-            if((retRecv=recv(hSocketServ, msgClient, MAXSTRING,0)) == -1) {
+            if((retRecv = recv(hSocketServ, msgClient, MAXSTRING,0)) == -1) {
                 printf("Erreur sur le recv de la socket connectee : %d\n", errno);
                 close(hSocketServ);
                 exit(1);
