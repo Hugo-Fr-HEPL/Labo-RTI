@@ -4,7 +4,7 @@ int main(void)
 {
 	int ip;
 	struct sockaddr_in adresse;
-	properties prop;
+	properties prop = Load_Properties(FILENAME);
 	struct in_addr adresseIP;
 
 	char msgClient[MAXSTRING] = "bonjour petite peruche";
@@ -12,7 +12,7 @@ int main(void)
 
 	ip = Create_Socket(AF_INET, SOCK_STREAM, 0);
 
-	adresse = Infos_Host();
+	adresse = Infos_Host(prop);
 	adresseIP = adresse.sin_addr;
 
 	Connect_Client(ip, (struct sockaddr*)&adresse, sizeof(struct sockaddr_in));

@@ -1,11 +1,9 @@
 #include "reseaux.h"
 
 
-int Create_Socket(int domain, int type, int protocol)
-{
+int Create_Socket(int domain, int type, int protocol) {
 	int handleSocket = socket(domain, type, protocol);
-	if(handleSocket == -1)
-	{
+	if(handleSocket == -1) {
 		printf("Erreur de creation de la socket %d\n", errno);
 		exit(1);
 	}
@@ -13,16 +11,11 @@ int Create_Socket(int domain, int type, int protocol)
 	return handleSocket;
 }
 
-sockaddr_in Infos_Host()
-{
+sockaddr_in Infos_Host(properties prop) {
 	struct sockaddr_in adresse;
-	properties prop;
-
-	prop = Load_Properties(FILENAME);
 
 	struct hostent *infosHost = gethostbyname(prop.machine);
-	if( infosHost == 0)
-	{
+	if( infosHost == 0) {
 		printf("Erreur d'acquisition d'infos sur le host %d\n", errno);
 		exit(1);
 	}
@@ -35,33 +28,25 @@ sockaddr_in Infos_Host()
 	return adresse;
 }
 
-void Bind_Socket(int handleSocket, const struct sockaddr *adress, int size)
-{
-	int reussite = bind(handleSocket, adress, size);
-	if(reussite == -1)
-	{
+void Bind_Socket(int handleSocket, const struct sockaddr *adress, int size) {
+	if(bind(handleSocket, adress, size) == -1) {
 		printf("Erreur sur le bind de la socket %d\n", errno);
 		exit(1);
 	}
 }
 
 
-void Listen_Server(int handleSocket, int nbConnection)
-{
-	int reussite = listen(handleSocket, nbConnection);
-	if(reussite == -1)
-	{
+void Listen_Server(int handleSocket, int nbConnection) {
+	if(listen(handleSocket, nbConnection) == -1) {
 		printf("Erreur sur l'ecoute %d\n", errno);
 		close(handleSocket);
 		exit(1);
 	}
 }
 
-int Accept_Server(int handleSocket, struct sockaddr *adress, int size)
-{
+int Accept_Server(int handleSocket, struct sockaddr *adress, int size) {
 	int hSocketService = accept(handleSocket, adress, (unsigned int*)&size);
-	if(hSocketService == -1)
-	{
+	if(hSocketService == -1) {
 		printf("Erreur sur l'acceptation %d\n", errno);
 		close(handleSocket);
 		exit(1);
@@ -70,11 +55,8 @@ int Accept_Server(int handleSocket, struct sockaddr *adress, int size)
 }
 
 
-void Connect_Client(int handleSocket, struct sockaddr *adress, int size)
-{
-	int reussite = connect(handleSocket, adress, size);
-	if(reussite == -1)
-	{
+void Connect_Client(int handleSocket, struct sockaddr *adress, int size) {
+	if(connect(handleSocket, adress, size) == -1) {
 		printf("Erreur de connexion %d\n", errno);
 		close(handleSocket);
 		exit(1);
@@ -82,38 +64,31 @@ void Connect_Client(int handleSocket, struct sockaddr *adress, int size)
 }
 
 
-void Send_Message(int hSocketCible, const void* message, int sizeMsg, int flagUrg)
-{
-	int reussite = send(hSocketCible, message, sizeMsg, flagUrg);
-	if(reussite == -1)
-	{
+void Send_Message(int hSocketCible, const void* message, int sizeMsg, int flagUrg) {
+	if(send(hSocketCible, message, sizeMsg, flagUrg) == -1) {
 		printf("Erreur sur le send %d\n", errno);
+		close(hSocketCible);
 		exit(1);
-	}
+	} else
+		printf("Send socket refusee OK\n");
+	close(hSocketCible);
 }
 
-char* Receive_Message(int hSocketSource, void* message, int sizeMsg, int flagUrgdest)
-{
-	int reussite = recv(hSocketSource, message, sizeMsg, flagUrgdest);
-	if(reussite == -1)
-	{
+char* Receive_Message(int hSocketSource, void* message, int sizeMsg, int flagUrgdest) {
+	if(recv(hSocketSource, message, sizeMsg, flagUrgdest) == -1) {
 		printf("Erreur sur le receive %d\n", errno);
 		exit(1);
 	}
-	printf("message recu: %s\n", (char*)message);
-
 	return (char*)message;
 }
 
 
-properties Load_Properties(const char* nomFichier)
-{
+properties Load_Properties(const char* nomFichier) {
 	properties prop;
 	FILE *fp;
 
 	fp = fopen(nomFichier, "r+t");
-	if(fp == NULL)
-	{
+	if(fp == NULL) {
 		fp = fopen(nomFichier, "w+t");
 
 		char hostname[200];
@@ -124,12 +99,18 @@ properties Load_Properties(const char* nomFichier)
 		prop.port = PORT;
 		prop.nbServer = NBSERVER;
 
+		char* txt = NULL;
+
 		fprintf(fp, "Host=");
 		fprintf(fp, prop.machine, sizeof(prop.machine));
-		fprintf(fp, ";\rPort=50000;\rServeurs=5;");
-	}
-	else
-	{
+		fprintf(fp, ";\rPort=");
+		sprintf(txt, "%d", PORT);
+		fprintf(fp, txt);
+		fprintf(fp, ";\rServers=");
+		sprintf(txt, "%d", NBSERVER);
+		fprintf(fp, txt);
+		fprintf(fp, ";");
+	} else {
 		fseek(fp, 0, SEEK_END);
 		int size = ftell(fp);
 		rewind(fp);
@@ -146,39 +127,28 @@ properties Load_Properties(const char* nomFichier)
 		prop.nbServer = atoi(Read_Lines(3, txt));
 	}
 	fclose(fp);
-
 	return prop;
 }
 
-char* Read_Lines(int line, char* txt)
-{
+char* Read_Lines(int line, char* txt) {
 	char prop[200], l;
 	int i = 0;
 
-	while(i < line)
-	{
+	while(i < line) {
 		l = *txt;
-		if(l == '=')
-		{
+		if(l == '=') {
 			i++;
 			txt++;
-		}
-		else
-		{
+		} else
 			txt++;
-		}
 	}
 
 	i = 0;
-	while(1)
-	{
+	while(1) {
 		l = *txt;
 		if(l == ';')
-		{
 			break;
-		}
-		else
-		{
+		else {
 			prop[i] = *txt;
 			i++;
 			txt++;

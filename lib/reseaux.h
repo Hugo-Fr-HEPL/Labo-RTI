@@ -1,17 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <netdb.h>
 
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-//#include <sys/stat.h>
-//#include <fcntl.h>
+#include <netdb.h>
 #include <errno.h>
 
-//#include <fstream>
-#include <unistd.h>
-//#include <iostream>
 
 #define MAXSTRING 100
 
@@ -28,7 +24,7 @@ typedef struct properties {
 
 
 int Create_Socket(int domain, int type, int protocol);
-sockaddr_in Infos_Host();
+sockaddr_in Infos_Host(properties prop);
 void Bind_Socket(int handleSocket, const struct sockaddr *adress, int size);
 
 void Listen_Server(int handleSocket, int nbConnection);

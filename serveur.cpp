@@ -4,14 +4,14 @@ int main(void)
 {
 	int ip, hSocketService;
 	struct sockaddr_in adresse;
-	properties prop;
+	properties prop = Load_Properties(FILENAME);
 
 	char msgClient[MAXSTRING];
 
 
 	ip = Create_Socket(AF_INET, SOCK_STREAM, 0);
 
-	adresse = Infos_Host();
+	adresse = Infos_Host(prop);
 
 	Bind_Socket(ip, (struct sockaddr*)&adresse, sizeof(struct sockaddr_in));
 
