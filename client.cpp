@@ -7,8 +7,7 @@ int main(void)
 	properties prop = Load_Properties(FILENAME);
 	struct in_addr adresseIP;
 
-	char msgClient[MAXSTRING] = "bonjour petite peruche";
-
+	char msgClient[MAXSTRING] = "bonjour";
 
 	ip = Create_Socket(AF_INET, SOCK_STREAM, 0);
 
@@ -18,7 +17,6 @@ int main(void)
 	Connect_Client(ip, (struct sockaddr*)&adresse, sizeof(struct sockaddr_in));
 
 	Send_Message(ip, msgClient, MAXSTRING, 0);
-
 
 	return EXIT_SUCCESS;
 }

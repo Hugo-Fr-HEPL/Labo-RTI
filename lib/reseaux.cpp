@@ -65,13 +65,20 @@ void Connect_Client(int handleSocket, struct sockaddr *adress, int size) {
 
 
 void Send_Message(int hSocketCible, const void* message, int sizeMsg, int flagUrg) {
-	if(send(hSocketCible, message, sizeMsg, flagUrg) == -1) {
-		printf("Erreur sur le send %d\n", errno);
-		close(hSocketCible);
+//	if(send(hSocketCible, message, sizeMsg, flagUrg) == -1) {
+//		printf("Erreur sur le send %d\n", errno);
+//		close(hSocketCible);
+//		exit(1);
+//	} else
+//		printf("Send socket refusee OK\n");
+//	close(hSocketCible);
+	int reussite;
+	reussite = send(hSocketCible, message, sizeMsg, flagUrg);
+	if(reussite==-1)
+	{
+		printf("Erreur sur le send %d \n",errno);
 		exit(1);
-	} else
-		printf("Send socket refusee OK\n");
-	close(hSocketCible);
+	}
 }
 
 char* Receive_Message(int hSocketSource, void* message, int sizeMsg, int flagUrgdest) {
@@ -79,6 +86,7 @@ char* Receive_Message(int hSocketSource, void* message, int sizeMsg, int flagUrg
 		printf("Erreur sur le receive %d\n", errno);
 		exit(1);
 	}
+	printf("Message: %s\n",message);
 	return (char*)message;
 }
 
@@ -99,7 +107,7 @@ properties Load_Properties(const char* nomFichier) {
 		prop.port = PORT;
 		prop.nbServer = NBSERVER;
 
-		char* txt = NULL;
+		char* txt = (char*)malloc(10);
 
 		fprintf(fp, "Host=");
 		fprintf(fp, prop.machine, sizeof(prop.machine));

@@ -93,14 +93,14 @@ do {
 
 void* fctThread(void* param) {
     int vr = ((paramThread*)param)->i;
-    int* hSocketConnectee = ((paramThread*)param)->hSocketConnectee;
+    int* hSocketConnectee = ((paramThread*)param)->hSocketConnectee;	
 
-    char *buf = (char*)malloc(100);
     char msgClient[MAXSTRING], msgServeur[MAXSTRING];
     int finDialogue=0, iCliTraite;
     int retRecv;
     char * numThr = getThreadIdentity();
     int hSocketServ;
+	char* buf = (char*)malloc(30);
 
     while(1) {
 //Attente d'un client à traiter
@@ -108,6 +108,7 @@ void* fctThread(void* param) {
 
         while(indiceCourant == -1)
             pthread_cond_wait(&condIndiceCourant, &mutexIndiceCourant);
+
         iCliTraite = indiceCourant;
         indiceCourant = -1;
         hSocketServ = *(hSocketConnectee+indiceCourant);
@@ -155,7 +156,7 @@ char* getThreadIdentity() {
     unsigned int numSequence;
     char* buf = (char*)malloc(30);
 
-    //numSequence = pthread_getsequence_np(pthread_self);
+    numSequence = pthread_getsequence_np( pthread_self() );
     sprintf(buf, "%d.%u\n", getpid(), numSequence);
 
     return buf;

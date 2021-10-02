@@ -8,10 +8,9 @@
 #include <netdb.h>
 #include <errno.h>
 
-
 #define MAXSTRING 100
 
-#define FILENAME "properties.txt"
+#define FILENAME "./lib/properties.txt"
 #define PORT 50000
 #define NBSERVER 5
 
