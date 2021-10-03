@@ -1,1 +1,1 @@
-Host=Solaris11DM2019;Port=50000;Servers=5;
+Host=hugo-linux;Port=50000;Servers=5;

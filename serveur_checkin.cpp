@@ -156,7 +156,7 @@ char* getThreadIdentity() {
     unsigned int numSequence;
     char* buf = (char*)malloc(30);
 
-    numSequence = pthread_getsequence_np( pthread_self() );
+    //numSequence = pthread_getsequence_np( pthread_self() );
     sprintf(buf, "%d.%u\n", getpid(), numSequence);
 
     return buf;

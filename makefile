@@ -1,16 +1,29 @@
-.SILENT:
-OBJET = LibReseaux.o
-GPP = g++ -m64 -Wall -D SUN -D CPP -lsocket -lnsl
+OBJET = reseaux.o
+GPP = g++ -m64 -Wall -D CPP -pthread -Ilib/ #-lnsl -lsocket
 
-serveur: $(OBJET) serveur.c
+ALL: Serv AppCheck
+
+
+# Executable
+Serv: $(OBJET) serveur_checkin.cpp
+	echo Creation de Serv
+	$(GPP) -o Serv serveur_checkin.cpp $(OBJET)
+AppCheck: $(OBJET) application_checkin.cpp
+	echo Creation de AppCheck
+	$(GPP) -o AppCheck application_checkin.cpp $(OBJET)
+
+# Deprecated Tests
+TEST: Serveur Client
+Serveur: $(OBJET) serveur.cpp
 	echo Creation de Serveur
-	$(GPP) -o Serveur serveur.c $(OBJET)
+	$(GPP) -o Serveur serveur.cpp $(OBJET)
 
-client: $(OBJET) client.c
-	echo Creation de client
-	$(GPP) -o client client.c $(OBJET)
+Client: $(OBJET) client.cpp
+	echo Creation de Client
+	$(GPP) -o Client client.cpp $(OBJET)
 
-LibReseaux.o: LibReseaux.c LibReseaux.h
-	echo Creation de LibReseaux.o
-	$(GPP) LibReseaux.c -c
 
+# Objects
+reseaux.o: lib/reseaux.cpp lib/reseaux.h
+	echo Creation de reseaux.o
+	$(GPP) lib/reseaux.cpp -c 

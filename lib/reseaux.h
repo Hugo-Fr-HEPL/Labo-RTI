@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <iostream>
+using namespace std;
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -35,4 +37,5 @@ void Send_Message(int hSocketCible, const void* message, int sizeMsg, int flagUr
 char* Receive_Message(int hSocketSource, void* message, int sizeMsg, int flagUrgdest);
 
 properties Load_Properties(const char* fileName);
-char* Read_Lines(int line, char* txt);
+char* Read_Line(int line, char* txt);
+char* Read_Line(int line, FILE* fp);
