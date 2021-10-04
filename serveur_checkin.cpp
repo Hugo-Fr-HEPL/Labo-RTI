@@ -5,7 +5,6 @@
 #define DOC "DENY_OF_CONNEXION"
 #define EOC "END_OF_CONNEXION"
 
-#define affThread(num, msg) printf("th_%s > %s\n", num, msg)
 
 typedef struct paramThread {
     int i;
@@ -14,7 +13,6 @@ typedef struct paramThread {
 
 
 void* fctThread(void* param);
-char* getThreadIdentity();
 
 
 pthread_mutex_t mutexIndiceCourant;
@@ -47,6 +45,7 @@ int main() {
 // Pool de Threads pour le serveur
     for(int i = 0; i < prop.nbServer; i++) {
         param.i = i;
+        hSocketConnectee[i] = -1;
         param.hSocketConnectee = hSocketConnectee;
         pthread_create(&threadHandle[i], NULL, fctThread, (void*)&param);
         printf("Creation du thread %d\n", i);
@@ -54,40 +53,41 @@ int main() {
     }
 
 
-do {
-	Listen_Server(hSocketEcoute, SOMAXCONN);
+    do {
+        Listen_Server(hSocketEcoute, SOMAXCONN);
 
-	hSocketService = Accept_Server(hSocketEcoute, (struct sockaddr*)&adresse, sizeof(struct sockaddr_in));
+        hSocketService = Accept_Server(hSocketEcoute, (struct sockaddr*)&adresse, sizeof(struct sockaddr_in));
 
-    printf("Recherche d'un socket connectee libre ...\n");
-    int i;
-    for(i = 0; i < prop.nbServer && hSocketConnectee[i] != -1; i++);
+        printf("Recherche d'un socket connectee libre ...\n");
+        int i;
+        for(i = 0; i < prop.nbServer && hSocketConnectee[i] != -1; i++);
 
-    if(i == prop.nbServer) {
-        printf("Plus de connexion disponible\n");
+        if(i == prop.nbServer) {
+            printf("Plus de connexion disponible\n");
 
-        char* msgServeur = NULL;
-        sprintf(msgServeur, DOC);
-        Send_Message(hSocketService, msgServeur, MAXSTRING, 0);
-    } else {
-        printf("Connexion sur la socket num %d\n", i);
+            char* msgServeur = NULL;
+            sprintf(msgServeur, DOC);
+            Send_Message(hSocketService, msgServeur, MAXSTRING, 0);
+        } else {
+            printf("Connexion sur la socket num %d\n", i);
 
-        pthread_mutex_lock(&mutexIndiceCourant);
+            pthread_mutex_lock(&mutexIndiceCourant);
 
-        hSocketConnectee[i] = hSocketService;
-        indiceCourant = i;
+            hSocketConnectee[i] = hSocketService;
+            indiceCourant = i;
 
-        pthread_mutex_unlock(&mutexIndiceCourant);
-        pthread_cond_signal(&condIndiceCourant);
-    }
+            pthread_mutex_unlock(&mutexIndiceCourant);
+            pthread_cond_signal(&condIndiceCourant);
+        }
 
-	//Receive_Message(hSocketService, msgClient, MAXSTRING, 0);
-} while(1);
+        //Receive_Message(hSocketService, msgClient, MAXSTRING, 0);
+    } while(1);
 
     close(hSocketEcoute);
-    printf("Socket serveur ferme\n");
+    printf("Socket Ecoute ferme\n");
+    close(hSocketService);
+    printf("Socket Ecoute ferme\n");
 
-    puts("Fin du thread princhSocketEcouteal\n");
 	return EXIT_SUCCESS;
 }
 
@@ -98,7 +98,6 @@ void* fctThread(void* param) {
     char msgClient[MAXSTRING], msgServeur[MAXSTRING];
     int finDialogue=0, iCliTraite;
     int retRecv;
-    char * numThr = getThreadIdentity();
     int hSocketServ;
 	char* buf = (char*)malloc(30);
 
@@ -111,11 +110,10 @@ void* fctThread(void* param) {
 
         iCliTraite = indiceCourant;
         indiceCourant = -1;
-        hSocketServ = *(hSocketConnectee+indiceCourant);
+        hSocketServ = *(hSocketConnectee+iCliTraite);
 
         pthread_mutex_unlock(&mutexIndiceCourant);
         sprintf(buf, "Je m'occupe du numero %d ...", iCliTraite);
-        affThread(numThr, buf);
 
 
 // Dialogue Thread-Client
@@ -126,38 +124,27 @@ void* fctThread(void* param) {
                 close(hSocketServ);
                 exit(1);
             } else if(retRecv == 0) {
-                sprintf(buf, "Le client est parti !!!");
-                affThread(numThr, buf);
+                printf("Le client est parti !!!");
                 finDialogue = 1;
                 break;
             } else {
-                sprintf(buf, "Message recu = %s\n", msgClient);
-                affThread(numThr, buf);
+                printf("Message recu = %s\n", msgClient);
             }
 
             if(strcmp(msgClient, EOC) == 0) {
                 finDialogue = 1;
+                Send_Message(hSocketServ, EOC, MAXSTRING, 0);
                 break;
             }
 
-            sprintf(msgServeur, "ACK pour votre message : <%s>\n", msgClient);
+            sprintf(msgServeur, "%s", msgClient);
             Send_Message(hSocketServ, msgServeur, MAXSTRING, 0);
         } while(!finDialogue);
 
         pthread_mutex_lock(&mutexIndiceCourant);
-        hSocketConnectee[iCliTraite] = -1;
+        hSocketConnectee[iCliTraite] = -1; 
         pthread_mutex_unlock(&mutexIndiceCourant);
     }
     close(hSocketServ);
     return (void*)vr;
-}
-
-char* getThreadIdentity() {
-    unsigned int numSequence;
-    char* buf = (char*)malloc(30);
-
-    //numSequence = pthread_getsequence_np( pthread_self() );
-    sprintf(buf, "%d.%u\n", getpid(), numSequence);
-
-    return buf;
 }

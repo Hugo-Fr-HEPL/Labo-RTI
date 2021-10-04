@@ -70,9 +70,7 @@ void Send_Message(int hSocketCible, const void* message, int sizeMsg, int flagUr
 		close(hSocketCible);
 		exit(1);
 	}
-//	else
-//		cout << "Send socket refusee OK" << endl;
-//	close(hSocketCible);
+	//cout << "Message envoye " << (char*)message << endl;
 }
 
 char* Receive_Message(int hSocketSource, void* message, int sizeMsg, int flagUrgdest) {
@@ -80,7 +78,7 @@ char* Receive_Message(int hSocketSource, void* message, int sizeMsg, int flagUrg
 		cout << "Erreur sur le receive " << errno << endl;
 		exit(1);
 	}
-	//cout << "Message: " << message << endl;
+	//cout << "Message recu " << (char*)message << endl;
 	return (char*)message;
 }
 

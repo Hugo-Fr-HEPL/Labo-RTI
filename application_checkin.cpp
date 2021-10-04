@@ -26,14 +26,21 @@ int main() {
 
 		do {
 			Send_Message(ip, msgClient, MAXSTRING, 0);
-			
+
 			if(strcmp(msgClient, EOC)) {
 				Receive_Message(ip, msgServeur, MAXSTRING, 0);
+
+				strcpy(msgClient, EOC);
 			}
 		} while(strcmp(msgClient, EOC) && strcmp(msgServeur, DOC));
 	} else
 		cout << "Impossible de se connecter\n" << endl;
 
+
+	close(ip);
+    printf("Socket client ferme\n");
+
+    puts("Fin du thread princhSocketEcouteal\n");
 
 	return EXIT_SUCCESS;
 }
@@ -89,6 +96,7 @@ bool Login() {
 				}
 			}
 		}
+		fclose(fp);
 	} else
 		cout << "Il n'existe aucun compte actuellement ...\n" << endl;
 

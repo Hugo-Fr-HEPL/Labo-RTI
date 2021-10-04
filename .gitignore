@@ -1,5 +1,6 @@
 *.o
 *.txt
+*.pdf
 Serveur
 Client
 Serv
@@ -7,4 +8,3 @@ AppCheck
 serveur.cpp
 client.cpp
 core
-lib/properties.txt
