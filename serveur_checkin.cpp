@@ -1,24 +1,4 @@
-#include <pthread.h>
-
-#include "reseaux.h"
-
-#define DOC "DENY_OF_CONNEXION"
-#define EOC "END_OF_CONNEXION"
-
-
-typedef struct paramThread {
-    int i;
-    int* hSocketConnectee;
-} paramThread;
-
-
-void* fctThread(void* param);
-
-
-pthread_mutex_t mutexIndiceCourant;
-pthread_cond_t condIndiceCourant;
-
-int indiceCourant = -1;
+#include "serveur_checkin.h"
 
 
 int main() {
@@ -91,13 +71,13 @@ int main() {
 	return EXIT_SUCCESS;
 }
 
+/* Thread pour permettre à plusieurs clients de se connecter */
 void* fctThread(void* param) {
     int vr = ((paramThread*)param)->i;
     int* hSocketConnectee = ((paramThread*)param)->hSocketConnectee;	
 
-    char msgClient[MAXSTRING], msgServeur[MAXSTRING];
+    char msgClient[MAXSTRING]; //, msgServeur[MAXSTRING];
     int finDialogue=0, iCliTraite;
-    int retRecv;
     int hSocketServ;
 	char* buf = (char*)malloc(30);
 
@@ -119,27 +99,35 @@ void* fctThread(void* param) {
 // Dialogue Thread-Client
         finDialogue = 0;
         do {
-            if((retRecv = recv(hSocketServ, msgClient, MAXSTRING,0)) == -1) {
-                printf("Erreur sur le recv de la socket connectee : %d\n", errno);
-                close(hSocketServ);
-                exit(1);
-            } else if(retRecv == 0) {
-                printf("Le client est parti !!!");
+            if(Receive_Message(hSocketServ, msgClient, MAXSTRING, 0) == EXIT_FAILURE) {
                 finDialogue = 1;
                 break;
-            } else {
-                printf("Message recu = %s\n", msgClient);
             }
+            cout << "Message recu " << msgClient << endl;
 
             if(strcmp(msgClient, EOC) == 0) {
                 finDialogue = 1;
                 Send_Message(hSocketServ, EOC, MAXSTRING, 0);
                 break;
+            } else {
+                switch(atoi(msgClient)) {
+                case LOGIN_OFFICER:
+                    while(VerifLogin(hSocketServ) != EXIT_SUCCESS);
+                    break;
+                case LOGOUT_OFFICER: // TO DO
+                    break;
+                case CHECK_TICKET:
+                    while(VerifTicket(hSocketServ) != EXIT_SUCCESS);
+                    break;
+                case CHECK_LUGGAGE:
+                    //while(VerifLuggage(hSocketServ) != EXIT_SUCCESS);
+                    break;
+                case PAYMENT_DONE: // TO DO
+                    break;
+                }
             }
-
-            sprintf(msgServeur, "%s", msgClient);
-            Send_Message(hSocketServ, msgServeur, MAXSTRING, 0);
         } while(!finDialogue);
+
 
         pthread_mutex_lock(&mutexIndiceCourant);
         hSocketConnectee[iCliTraite] = -1; 
@@ -147,4 +135,80 @@ void* fctThread(void* param) {
     }
     close(hSocketServ);
     return (void*)vr;
+}
+
+
+/* Reçoit les infos du client et vérifie si elles sont valides pour se connecter */
+bool VerifLogin(int hSocketServ) {
+	FILE* fp;
+    char msgClient[100], msgServeur[100];
+    char *pt = NULL;
+
+
+// Réception du message
+	Receive_Message(hSocketServ, msgClient, MAXSTRING, 0);
+    char* word = (char*)malloc(sizeof(msgClient));
+    strcpy(word, msgClient);
+
+    char* login = strtok_r(word, ";", &pt);
+    word = NULL;
+    char* password = strtok_r(word, "\0", &pt);
+
+
+// Vérification des infos
+	fp = fopen("login.csv", "r+t");
+	if(fp != NULL) {
+		fseek(fp, 0, SEEK_END);
+		int size = ftell(fp);
+		rewind(fp);
+
+		char txt[200];
+		fread(txt, size, 1, fp);
+
+		char *log = NULL, *pwd = NULL;
+		for(int i = 1; ; i++) {
+			if((word = Read_Line(i, txt)) == NULL) {
+                strcpy(msgServeur, LOG);
+                break;
+			} else {
+				log = strtok_r(word, ";", &pt);
+
+				if(strcmp(log, login) == 0) {
+					word = NULL;
+					pwd = strtok_r(word, "\0", &pt);
+
+                    if(strcmp(pwd, password) == 0) {
+                        Send_Message(hSocketServ, OK, MAXSTRING, 0);
+                        cout << "Message envoye " << OK << endl;
+                        //free(word); free(pt); free(log); free(pwd);
+                        return EXIT_SUCCESS;
+                    } else {
+                        strcpy(msgServeur, PWD);
+                        break;
+                    }
+				}
+			}
+		}
+		fclose(fp);
+	} else
+        strcpy(msgServeur, EMPTY);  // Pas de fichier
+
+    Send_Message(hSocketServ, msgServeur, MAXSTRING, 0);
+    cout << "Message envoye " << msgServeur << endl;
+
+	return EXIT_FAILURE;
+}
+
+/* Vérifie si les billets sont dans le fichiers .csv */
+bool VerifTicket(int hSocketServ) {
+
+
+    return EXIT_FAILURE;
+}
+
+/* Calcul l'excès de poids et montre le prix */
+bool VerifLuggage(int hSocketServ) {
+
+
+    return EXIT_FAILURE;
 }

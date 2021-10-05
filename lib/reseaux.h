@@ -18,6 +18,26 @@ using namespace std;
 #define NBSERVER 5
 
 
+#define DOC "DENY_OF_CONNEXION"
+#define EOC "END_OF_CONNEXION"
+
+
+#define LOGIN_OFFICER 1
+#define LOGOUT_OFFICER 2
+#define CHECK_TICKET 3
+#define CHECK_LUGGAGE 4
+#define PAYMENT_DONE 5
+
+
+#define LOG "LOGIN"
+#define PWD "PASSWORD"
+#define EMPTY "EMPTY"
+#define OK "OK"
+
+#define TIC "TICKET"
+#define NB "NB_LUGGAGE"
+
+
 typedef struct properties {
 	char* machine = NULL;
 	int port;
@@ -35,7 +55,7 @@ int Accept_Server(int handleSocket, struct sockaddr *adress, int size);
 void Connect_Client(int handleSocket, struct sockaddr *adress, int size);
 
 void Send_Message(int hSocketCible, const void* message, int sizeMsg, int flagUrg);
-char* Receive_Message(int hSocketSource, void* message, int sizeMsg, int flagUrgdest);
+bool Receive_Message(int hSocketSource, void* message, int sizeMsg, int flagUrgdest);
 
 properties Load_Properties(const char* fileName);
 char* Read_Line(int line, char* txt);

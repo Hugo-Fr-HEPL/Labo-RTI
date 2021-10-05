@@ -70,16 +70,19 @@ void Send_Message(int hSocketCible, const void* message, int sizeMsg, int flagUr
 		close(hSocketCible);
 		exit(1);
 	}
-	//cout << "Message envoye " << (char*)message << endl;
 }
 
-char* Receive_Message(int hSocketSource, void* message, int sizeMsg, int flagUrgdest) {
-	if(recv(hSocketSource, message, sizeMsg, flagUrgdest) == -1) {
+bool Receive_Message(int hSocketSource, void* message, int sizeMsg, int flagUrgdest) {
+	int ret;
+	if((ret = recv(hSocketSource, message, sizeMsg, flagUrgdest)) == -1) {
 		cout << "Erreur sur le receive " << errno << endl;
 		exit(1);
+	} else if(ret == 0) {
+		printf("Fin de connexion\n");
+		return EXIT_FAILURE;
 	}
-	//cout << "Message recu " << (char*)message << endl;
-	return (char*)message;
+
+	return EXIT_SUCCESS;
 }
 
 
@@ -148,6 +151,7 @@ properties Load_Properties(const char* nomFichier) {
 	return prop;
 }
 
+/* Return a line from a string with multiple '\n' or '\r' */
 char* Read_Line(int line, char* src) {
 	char c;
 	int i = 0, j = 0;
@@ -162,7 +166,7 @@ char* Read_Line(int line, char* src) {
 			j++;
 
 		if(c == '\0' && i < line) {
-			//cout << "FIN DU FICHIER !!" << endl;
+			//cout << "End Of String !!" << endl;
 			return NULL;
 		}
 	}
@@ -186,6 +190,8 @@ char* Read_Line(int line, char* src) {
 	return ret;
 }
 
+/* Return a line directly from a file
+TO DO */
 char* Read_Line(int line, FILE* fp) { // TO DO for me
 	return NULL;
 }

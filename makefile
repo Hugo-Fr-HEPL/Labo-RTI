@@ -5,7 +5,7 @@ ALL: Serv AppCheck
 
 
 # Executable
-Serv: $(OBJET) serveur_checkin.cpp
+Serv: $(OBJET) serveur_checkin.cpp serveur_checkin.h
 	echo Creation de Serv
 	$(GPP) -o Serv serveur_checkin.cpp $(OBJET)
 AppCheck: $(OBJET) application_checkin.cpp
