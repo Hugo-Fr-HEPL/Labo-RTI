@@ -12,7 +12,8 @@ typedef struct paramThread {
 void* fctThread(void* param);
 bool VerifLogin(int socket);
 bool VerifTicket(int socket);
-bool VerifLuggage(int socket);
+char* VerifLuggage(int socket);
+bool PaymentDone(int socket, char* bag);
 
 
 pthread_mutex_t mutexIndiceCourant;

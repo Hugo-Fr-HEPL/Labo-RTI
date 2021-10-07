@@ -14,13 +14,11 @@ int main() {
     pthread_mutex_init(&mutexIndiceCourant, NULL);
     pthread_cond_init(&condIndiceCourant, NULL);
 
-
 	hSocketEcoute = Create_Socket(AF_INET, SOCK_STREAM, 0);
 
 	adresse = Infos_Host(prop);
 
 	Bind_Socket(hSocketEcoute, (struct sockaddr*)&adresse, sizeof(struct sockaddr_in));
-
 
 // Pool de Threads pour le serveur
     for(int i = 0; i < prop.nbServer; i++) {
@@ -80,6 +78,7 @@ void* fctThread(void* param) {
     int finDialogue=0, iCliTraite;
     int hSocketServ;
 	char* buf = (char*)malloc(30);
+	char* bag;
 
     while(1) {
 //Attente d'un client à traiter
@@ -119,10 +118,11 @@ void* fctThread(void* param) {
                 case CHECK_TICKET:
                     while(VerifTicket(hSocketServ) != EXIT_SUCCESS);
                     break;
-                case CHECK_LUGGAGE:
-                    //while(VerifLuggage(hSocketServ) != EXIT_SUCCESS);
+                case CHECK_LUGGAGE: 
+					bag=VerifLuggage(hSocketServ);
                     break;
-                case PAYMENT_DONE: // TO DO
+                case PAYMENT_DONE:
+                    while(PaymentDone(hSocketServ,bag) != EXIT_SUCCESS);
                     break;
                 }
             }
@@ -199,16 +199,117 @@ bool VerifLogin(int hSocketServ) {
 	return EXIT_FAILURE;
 }
 
-/* Vérifie si les billets sont dans le fichiers .csv */
 bool VerifTicket(int hSocketServ) {
+	FILE* fp;
+    char msgClient[100], msgServeur[100];
 
+/* Réception du message */
+	Receive_Message(hSocketServ, msgClient, MAXSTRING, 0);
+	char* bi = (char*)malloc(sizeof(msgClient));
+	strcpy(bi, msgClient);
+
+	char* word;
+
+/* Vérifie si les billets sont dans le fichiers .csv */
+	fp = fopen("billets.csv", "r+t");
+	if(fp != NULL) {
+		fseek(fp, 0, SEEK_END);
+		int size = ftell(fp);
+		rewind(fp);
+
+		char txt[200];
+		fread(txt, size, 1, fp);
+
+		for(int i = 1; ; i++) {
+			if((word = Read_Line(i, txt)) == NULL) {
+                strcpy(msgServeur, LOG);
+                break;
+			} else {
+
+				if(strcmp(bi, word) == 0) {
+                    Send_Message(hSocketServ, OK, MAXSTRING, 0);
+                    cout << "Message envoye " << OK << endl;
+                    //free(word); free(pt); free(log); free(pwd);
+                    return EXIT_SUCCESS;
+                } else {
+                    strcpy(msgServeur, TIC);
+                    break;
+                }
+			}
+		}
+		fclose(fp);
+	} else
+        strcpy(msgServeur, EMPTY);  // Pas de fichier
+
+    Send_Message(hSocketServ, msgServeur, MAXSTRING, 0);
+    cout << "Message envoye " << msgServeur << endl;
 
     return EXIT_FAILURE;
 }
 
 /* Calcul l'excès de poids et montre le prix */
-bool VerifLuggage(int hSocketServ) {
+char* VerifLuggage(int hSocketServ) {
+    char msgClient[100], msgServeur[100];
+    char *pt = NULL;
+	int exces = 0, supp = 0, total = 0, poidi, i=1;
+	char* poidc;
 
+// Réception du message
+	Receive_Message(hSocketServ, msgClient, MAXSTRING, 0);
+    char* word = (char*)malloc(sizeof(msgClient));
+	char* ret = (char*)malloc(sizeof(msgClient));
+    strcpy(word, msgClient);
+	strcpy(ret, msgClient);
 
-    return EXIT_FAILURE;
+	while(true)
+	{
+		poidc = strtok_r(word, ";", &pt);
+		word = NULL;
+		//pour ne pas prendre les N et O
+		if(i%2!=0)
+		{
+			if(poidc==NULL)
+			{
+				break;
+			}
+			poidi=atoi(poidc);
+			total += poidi;
+			if(poidi>20)
+			{
+				exces += poidi - 20;
+				supp += (poidi- 20) * 3;
+			}
+		}
+		i++;
+	}
+	cout << "Poids total bagages : " << total << "kg" << endl;
+	cout << "Excedent poids : " << exces << "kg" << endl;
+	cout << "Supplement a payer : " << supp << " EUR" << endl;
+
+	sprintf(msgServeur,"%d",supp);
+	Send_Message(hSocketServ, msgServeur, MAXSTRING, 0);
+
+	return ret;
+}
+
+bool PaymentDone(int hSocketServ, char* bag) {
+    char msgClient[100];//, msgServeur[100];
+
+// Réception du message
+	Receive_Message(hSocketServ, msgClient, MAXSTRING, 0);
+	cout << "Paiement effectue ? " << msgClient << endl;
+
+	printf("bag: %s\n",bag);
+	if(strcmp(msgClient, "Y") == 0) {
+// Sauvegarde des bagages
+		FILE* fp;
+
+		fp = fopen(nomFichier, "a+t");
+		if(fp != NULL) {
+			
+		}
+
+	}
+
+	return EXIT_SUCCESS;
 }

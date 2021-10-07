@@ -4,7 +4,8 @@
 void CloseConnection(int socket);
 bool Login(int socket);
 bool Ticket(int socket);
-bool Luggage(int socket);
+int Luggage(int socket);
+bool Payment(int socket, int total);
 
 int main() {
 	int hSocketClient;
@@ -13,10 +14,8 @@ int main() {
 	struct in_addr adresseIP;
 	char* send = (char*)malloc(sizeof(int));
 
-	char msgClient[MAXSTRING] = "bonjour petite peruche";
-	char msgServeur[MAXSTRING];
-
-
+	//char msgClient[MAXSTRING];
+	//char msgServeur[MAXSTRING];
 
 	hSocketClient = Create_Socket(AF_INET, SOCK_STREAM, 0);
 
@@ -40,19 +39,24 @@ int main() {
 
 //Encoder bagages
 		sprintf(send, "%d", CHECK_LUGGAGE);
-		//Send_Message(hSocketClient, send, MAXSTRING, 0);
-		//while(Luggage(hSocketClient) != EXIT_SUCCESS);
+		Send_Message(hSocketClient, send, MAXSTRING, 0);
+		int total = Luggage(hSocketClient);
+
+// Paiement
+		sprintf(send, "%d", PAYMENT_DONE);
+		Send_Message(hSocketClient, send, MAXSTRING, 0);
+		Payment(hSocketClient, total);
 	} while(1);
 
-	do {
-		Send_Message(hSocketClient, msgClient, MAXSTRING, 0);
+//	do {
+//		Send_Message(hSocketClient, msgClient, MAXSTRING, 0);
 
-		if(strcmp(msgClient, EOC)) {
-			Receive_Message(hSocketClient, msgServeur, MAXSTRING, 0);
+//		if(strcmp(msgClient, EOC)) {
+//			Receive_Message(hSocketClient, msgServeur, MAXSTRING, 0);
 
-			strcpy(msgClient, EOC);
-		}
-	} while(strcmp(msgClient, EOC) && strcmp(msgServeur, DOC));
+//			strcpy(msgClient, EOC);
+//		}
+//	} while(strcmp(msgClient, EOC) && strcmp(msgServeur, DOC));
 
 	CloseConnection(hSocketClient);
 }
@@ -110,20 +114,15 @@ bool Login(int hSocketClient) {
 	return EXIT_SUCCESS on success
 */
 bool Ticket(int hSocketClient) {
-	int nbAccomp;
-	char billet[20], txt[20];
+	char billet[20];
 	char msgClient[60] = {"\0"}, msgServeur[100];
 
 
 	cout << "Numero de billet ? ";
 	cin >> billet;
-	cout << endl << "Nombre d'accompagnants ? ";
-	cin >> nbAccomp;
 
 	strcat(msgClient, billet);
 	strcat(msgClient, ";");
-	sprintf(txt, "%d", nbAccomp);
-	strcat(msgClient, txt);
 	strcat(msgClient, "\0");
 
 	Send_Message(hSocketClient, msgClient, MAXSTRING, 0);
@@ -133,41 +132,58 @@ bool Ticket(int hSocketClient) {
 	if(!strcmp(msgServeur, TIC)) {
 		cout << "Le ticket n'est pas valide\n" << endl;
 		return EXIT_FAILURE;
-	} else if(!strcmp(msgServeur, NB)) {
-		cout << "Le nombre de baggages est invalide\n" << endl;
-		return EXIT_FAILURE;
 	} else if(!strcmp(msgServeur, EMPTY)) {
 		cout << "Il n'existe aucun ticket actuellement ...\n" << endl;
 		return EXIT_FAILURE;
 	} else {
-		cout << "Connexion reussie !\n" << endl;
+		cout << "Numero du billet est valide !\n" << endl;
 		return EXIT_SUCCESS;
 	}
 	return EXIT_FAILURE;
 }
 
 /* Envoie les infos des bagages au serveur */
-bool Luggage(int hSocketClient, int luggage) {
+int Luggage(int hSocketClient) {
 	float poids;
-	char valise[1], txt[20];
-	char msgClient[100], msgServeur[100];
+	int nombrebag;
+	char valise, txt[20] = "";
+	char msgClient[200] = "", msgServeur[200];
+	
+	cout << "Nombre de bagages ? ";
+	cin >> nombrebag;
 
-
-	for(int i = 0; i < luggage; i++) {
-		cout << "Poids du bagage n°" << i << " <Enter si fini> : ";
+	for(int i = 1; i <= nombrebag; i++) {
+		cout << "Poids du bagage n°" << i << " (Enter si fini) : ";
 		cin >> poids;
-		cout << endl << "Valise ? ";
-		cin >> valise;
+		do
+		{
+			cout << endl << "Valise (oui=O,non=N)? ";
+			cin >> valise;
+		}while(valise!='O'&&valise!='N');
 
-		sprintf(txt, "%d", poids);
+		sprintf(txt, "%f", poids);
 		strcat(msgClient, txt);
 		strcat(msgClient, ";");
-		strcat(msgClient, valise);
+		strcat(msgClient, &valise);
+		strcat(msgClient, ";");
 	}
 	strcat(msgClient, "\0");
 
 	Send_Message(hSocketClient, msgClient, MAXSTRING, 0);
 	Receive_Message(hSocketClient, msgServeur, MAXSTRING, 0);
 
-	return EXIT_FAILURE;
+	return atoi(msgServeur);
+}
+
+bool Payment(int hSocketClient, int supplement) {
+	char msgServeur[200];
+	char paie;
+
+	cout << "Prix du supplement de bagages : " << supplement << endl;
+	cout << "Enter pour payer" << endl;
+	fflush(stdin);
+	paie=getchar();
+
+	Send_Message(hSocketClient, "Y", MAXSTRING, 0);
+	Receive_Message(hSocketClient, msgServeur, MAXSTRING, 0);
 }
