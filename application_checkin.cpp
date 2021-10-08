@@ -1,11 +1,12 @@
 #include "reseaux.h"
+#include "airport.h"
 
 
 void CloseConnection(int socket);
 bool Login(int socket);
-bool Ticket(int socket);
+char* Ticket(int socket);
 int Luggage(int socket);
-bool Payment(int socket, int total);
+bool Payment(int socket, int total, char* ticket);
 
 int main() {
 	int hSocketClient;
@@ -35,7 +36,8 @@ int main() {
 // Encoder ticket
 		sprintf(send, "%d", CHECK_TICKET);
 		Send_Message(hSocketClient, send, MAXSTRING, 0);
-		while(Ticket(hSocketClient) != EXIT_SUCCESS);
+		char* ticket = NULL;
+		while((ticket = Ticket(hSocketClient)) == NULL);
 
 //Encoder bagages
 		sprintf(send, "%d", CHECK_LUGGAGE);
@@ -45,7 +47,7 @@ int main() {
 // Paiement
 		sprintf(send, "%d", PAYMENT_DONE);
 		Send_Message(hSocketClient, send, MAXSTRING, 0);
-		Payment(hSocketClient, total);
+		Payment(hSocketClient, total, ticket);
 	} while(1);
 
 //	do {
@@ -74,8 +76,8 @@ void CloseConnection(int hSocketClient) {
 	return EXIT_SUCCESS on success
 */
 bool Login(int hSocketClient) {
+	char msgClient[60] = "", msgServeur[100];
 	char login[30], password[30];
-	char msgClient[60] = {"\0"}, msgServeur[100];
 
 
 	cout << "Encodez votre login : ";
@@ -94,13 +96,10 @@ bool Login(int hSocketClient) {
 
 	if(!strcmp(msgServeur, LOG)) {
 		cout << "Le login n'existe pas\n" << endl;
-		return EXIT_FAILURE;
 	} else if(!strcmp(msgServeur, PWD)) {
 		cout << "Le mot de passe est incorrect\n" << endl;
-		return EXIT_FAILURE;
 	} else if(!strcmp(msgServeur, EMPTY)) {
 		cout << "Il n'existe aucun compte actuellement ...\n" << endl;
-		return EXIT_FAILURE;
 	} else {
 		cout << "Connexion reussie !\n" << endl;
 		return EXIT_SUCCESS;
@@ -111,43 +110,46 @@ bool Login(int hSocketClient) {
 
 /*
 	Envoie les billets au serveur
-	return EXIT_SUCCESS on success
+	Renvoie le ticket ou NULL
 */
-bool Ticket(int hSocketClient) {
-	char billet[20];
-	char msgClient[60] = {"\0"}, msgServeur[100];
+char* Ticket(int hSocketClient) {
+	char msgClient[60] = "", msgServeur[100];
+	char tmp[30];
 
-
+// Encoder
 	cout << "Numero de billet ? ";
-	cin >> billet;
+	cin >> tmp;
 
-	strcat(msgClient, billet);
+	strcat(msgClient, tmp);
 	strcat(msgClient, ";");
 	strcat(msgClient, "\0");
 
 	Send_Message(hSocketClient, msgClient, MAXSTRING, 0);
 	Receive_Message(hSocketClient, msgServeur, MAXSTRING, 0);
 
-
+// Message de retour
 	if(!strcmp(msgServeur, TIC)) {
 		cout << "Le ticket n'est pas valide\n" << endl;
-		return EXIT_FAILURE;
 	} else if(!strcmp(msgServeur, EMPTY)) {
 		cout << "Il n'existe aucun ticket actuellement ...\n" << endl;
-		return EXIT_FAILURE;
 	} else {
 		cout << "Numero du billet est valide !\n" << endl;
-		return EXIT_SUCCESS;
+		char* billet = (char*)malloc(sizeof(tmp));
+		strcpy(billet, tmp);
+		return billet;
 	}
-	return EXIT_FAILURE;
+	return NULL;
 }
 
-/* Envoie les infos des bagages au serveur */
+
+/*
+	Envoie les infos des bagages au serveur
+*/
 int Luggage(int hSocketClient) {
+	char msgClient[200] = "", msgServeur[200];
 	float poids;
 	int nombrebag;
 	char valise, txt[20] = "";
-	char msgClient[200] = "", msgServeur[200];
 	
 	cout << "Nombre de bagages ? ";
 	cin >> nombrebag;
@@ -157,7 +159,7 @@ int Luggage(int hSocketClient) {
 		cin >> poids;
 		do
 		{
-			cout << endl << "Valise (oui=O,non=N)? ";
+			cout << "Valise (oui=O,non=N)? ";
 			cin >> valise;
 		}while(valise!='O'&&valise!='N');
 
@@ -175,15 +177,21 @@ int Luggage(int hSocketClient) {
 	return atoi(msgServeur);
 }
 
-bool Payment(int hSocketClient, int supplement) {
+
+/*
+	Valide le paiement
+*/
+bool Payment(int hSocketClient, int supplement, char* ticket) {
 	char msgServeur[200];
-	char paie;
+
 
 	cout << "Prix du supplement de bagages : " << supplement << endl;
 	cout << "Enter pour payer" << endl;
 	fflush(stdin);
-	paie=getchar();
+	//char tmp = getchar();
 
-	Send_Message(hSocketClient, "Y", MAXSTRING, 0);
+	Send_Message(hSocketClient, ticket, MAXSTRING, 0);
 	Receive_Message(hSocketClient, msgServeur, MAXSTRING, 0);
+
+	return EXIT_SUCCESS;
 }

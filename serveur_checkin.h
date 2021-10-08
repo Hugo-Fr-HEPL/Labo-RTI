@@ -1,6 +1,12 @@
+#ifndef SERVEUR_CHECKIN_H
+#define SERVEUR_CHECKIN_H
+
 #include <pthread.h>
 
 #include "reseaux.h"
+#include "airport.h"
+
+#define LUGFILE "362_22082017_lug.csv"
 
 
 typedef struct paramThread {
@@ -20,3 +26,5 @@ pthread_mutex_t mutexIndiceCourant;
 pthread_cond_t condIndiceCourant;
 
 int indiceCourant = -1;
+
+#endif

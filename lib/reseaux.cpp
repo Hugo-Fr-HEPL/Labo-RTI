@@ -14,16 +14,19 @@ int Create_Socket(int domain, int type, int protocol) {
 sockaddr_in Infos_Host(properties prop) {
 	struct sockaddr_in adresse;
 
+	adresse.sin_addr.s_addr = inet_addr("192.168.4.138");
+	//struct hostent *infosHost = getaddrinfo();
+/*
 	struct hostent *infosHost = gethostbyname(prop.machine);
-	if( infosHost == 0) {
+	if(infosHost == 0) {
 		cout << "Erreur d'acquisition d'infos sur le host " << errno << endl;
 		exit(1);
 	}
-
+*/
 	memset(&adresse, 0, sizeof(struct sockaddr_in));
 	adresse.sin_family = AF_INET;
 	adresse.sin_port = htons(prop.port);
-	memcpy(&adresse.sin_addr, infosHost->h_addr, infosHost->h_length);
+	//memcpy(&adresse.sin_addr, infosHost->h_addr, infosHost->h_length);
 
 	return adresse;
 }
@@ -120,6 +123,8 @@ properties Load_Properties(const char* nomFichier) {
 		fprintf(fp, txt, sizeof(txt));
 
 		fprintf(fp, ";");
+
+		free(txt);
 	} else {
 		fseek(fp, 0, SEEK_END);
 		int size = ftell(fp);

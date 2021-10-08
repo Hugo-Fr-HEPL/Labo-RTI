@@ -8,3 +8,4 @@ AppCheck
 serveur.cpp
 client.cpp
 core
+makefile

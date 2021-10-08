@@ -1,3 +1,6 @@
+#ifndef RESEAUX_H
+#define RESEAUX_H
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -10,6 +13,8 @@ using namespace std;
 #include <sys/socket.h>
 #include <netdb.h>
 #include <errno.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #define MAXSTRING 100
 
@@ -20,22 +25,6 @@ using namespace std;
 
 #define DOC "DENY_OF_CONNEXION"
 #define EOC "END_OF_CONNEXION"
-
-
-#define LOGIN_OFFICER 1
-#define LOGOUT_OFFICER 2
-#define CHECK_TICKET 3
-#define CHECK_LUGGAGE 4
-#define PAYMENT_DONE 5
-
-
-#define LOG "LOGIN"
-#define PWD "PASSWORD"
-#define EMPTY "EMPTY"
-#define OK "OK"
-
-#define TIC "TICKET"
-#define NB "NB_LUGGAGE"
 
 
 typedef struct properties {
@@ -60,3 +49,5 @@ bool Receive_Message(int hSocketSource, void* message, int sizeMsg, int flagUrgd
 properties Load_Properties(const char* fileName);
 char* Read_Line(int line, char* txt);
 char* Read_Line(int line, FILE* fp);
+
+#endif

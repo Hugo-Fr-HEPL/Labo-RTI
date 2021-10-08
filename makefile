@@ -1,5 +1,5 @@
 OBJET = reseaux.o
-GPP = g++ -m64 -Wall -D CPP -pthread -I lib/ -lnsl -lsocket
+GPP = g++ -m64 -Wall -D CPP -pthread -Ilib/ #-lnsl -lsocket
 
 ALL: Serv AppCheck
 
