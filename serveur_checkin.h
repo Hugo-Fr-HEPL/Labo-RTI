@@ -3,10 +3,12 @@
 
 #include <pthread.h>
 
-#include "reseaux.h"
+#include "socketServer.h"
 #include "airport.h"
 
-#define LUGFILE "362_22082017_lug.csv"
+#define LOGFILE "./conf/login.csv"
+#define TICFILE "./conf/billets.csv"
+#define LUGFILE "./conf/362_22082017_lug.csv"
 
 
 typedef struct paramThread {
@@ -25,6 +27,8 @@ bool PaymentDone(int socket, char* bag);
 pthread_mutex_t mutexIndiceCourant;
 pthread_cond_t condIndiceCourant;
 
+
+SocketServer sock;
 int indiceCourant = -1;
 
 #endif

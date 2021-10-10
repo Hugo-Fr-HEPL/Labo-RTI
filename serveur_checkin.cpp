@@ -1,10 +1,14 @@
 #include "serveur_checkin.h"
 
+// ENTER SI FINI (payment appcheck)
+// Nombre d'accompagnants
+// Fermer le serv -> tout fermer
+// Le serveur s'arrête quand un client s'arrête
 
 int main() {
 	int hSocketEcoute, hSocketService;
 	struct sockaddr_in adresse;
-	properties prop = Load_Properties(FILENAME);
+	properties prop = sock.Load_Properties(PROPFILE);
     pthread_t threadHandle[prop.nbServer];
     int hSocketConnectee[prop.nbServer];
     paramThread param;
@@ -14,11 +18,11 @@ int main() {
     pthread_mutex_init(&mutexIndiceCourant, NULL);
     pthread_cond_init(&condIndiceCourant, NULL);
 
-	hSocketEcoute = Create_Socket(AF_INET, SOCK_STREAM, 0);
+	hSocketEcoute = sock.Create_Socket(AF_INET, SOCK_STREAM, 0);
 
-	adresse = Infos_Host(prop);
+	adresse = sock.Infos_Host(prop);
 
-	Bind_Socket(hSocketEcoute, (struct sockaddr*)&adresse, sizeof(struct sockaddr_in));
+	sock.Bind_Socket(hSocketEcoute, (struct sockaddr*)&adresse);
 
 // Pool de Threads pour le serveur
     for(int i = 0; i < prop.nbServer; i++) {
@@ -32,9 +36,9 @@ int main() {
 
 
     do {
-        Listen_Server(hSocketEcoute, SOMAXCONN);
+        sock.Listen_Server(hSocketEcoute);
 
-        hSocketService = Accept_Server(hSocketEcoute, (struct sockaddr*)&adresse, sizeof(struct sockaddr_in));
+        hSocketService = sock.Accept_Server(hSocketEcoute, (struct sockaddr*)&adresse);
 
         printf("Recherche d'un socket connectee libre ...\n");
         int i;
@@ -45,7 +49,7 @@ int main() {
 
             char* msgServeur = NULL;
             sprintf(msgServeur, DOC);
-            Send_Message(hSocketService, msgServeur, MAXSTRING, 0);
+            sock.Send_Message(hSocketService, msgServeur, 0);
         } else {
             printf("Connexion sur la socket num %d\n", i);
 
@@ -58,7 +62,7 @@ int main() {
             pthread_cond_signal(&condIndiceCourant);
         }
 
-        //Receive_Message(hSocketService, msgClient, MAXSTRING, 0);
+        //Receive_Message(hSocketService, msgClient, 0);
     } while(1);
 
     close(hSocketEcoute);
@@ -98,7 +102,7 @@ void* fctThread(void* param) {
 // Dialogue Thread-Client
         finDialogue = 0;
         do {
-            if(Receive_Message(hSocketServ, msgClient, MAXSTRING, 0) == EXIT_FAILURE) {
+            if(sock.Receive_Message(hSocketServ, msgClient, 0) == EXIT_FAILURE) {
                 finDialogue = 1;
                 break;
             }
@@ -106,7 +110,7 @@ void* fctThread(void* param) {
 
             if(strcmp(msgClient, EOC) == 0) {
                 finDialogue = 1;
-                Send_Message(hSocketServ, EOC, MAXSTRING, 0);
+                sock.Send_Message(hSocketServ, EOC, 0);
                 break;
             } else {
                 switch(atoi(msgClient)) {
@@ -128,7 +132,6 @@ void* fctThread(void* param) {
             }
         } while(!finDialogue);
 
-
         pthread_mutex_lock(&mutexIndiceCourant);
         hSocketConnectee[iCliTraite] = -1; 
         pthread_mutex_unlock(&mutexIndiceCourant);
@@ -142,12 +145,12 @@ void* fctThread(void* param) {
     Reçoit les infos du client et vérifie si elles sont valides pour se connecter
 */
 bool VerifLogin(int hSocketServ) {
-    char msgClient[100], msgServeur[100];
+    char msgClient[MAXSTRING], msgServeur[MAXSTRING];
     char *pt = NULL;
 
 
 // Réception du message
-	Receive_Message(hSocketServ, msgClient, MAXSTRING, 0);
+	sock.Receive_Message(hSocketServ, msgClient, 0);
     char* word = (char*)malloc(sizeof(msgClient));
     strcpy(word, msgClient);
 
@@ -158,7 +161,7 @@ bool VerifLogin(int hSocketServ) {
 
 // Vérification des infos
 	FILE* fp;
-	fp = fopen("login.csv", "r+t");
+	fp = fopen(LOGFILE, "r+t");
 	if(fp != NULL) {
 		fseek(fp, 0, SEEK_END);
 		int size = ftell(fp);
@@ -169,8 +172,8 @@ bool VerifLogin(int hSocketServ) {
 
 		char *log = NULL, *pwd = NULL;
 		for(int i = 1; ; i++) {
-			if((word = Read_Line(i, txt)) == NULL) {
-                strcpy(msgServeur, LOG);
+			if((word = sock.Read_Line(i, txt)) == NULL) {
+                sprintf(msgServeur, "%d", LOG);
                 break;
 			} else {
 				log = strtok_r(word, ";", &pt);
@@ -180,12 +183,13 @@ bool VerifLogin(int hSocketServ) {
 					pwd = strtok_r(word, "\0", &pt);
 
                     if(strcmp(pwd, password) == 0) {
-                        Send_Message(hSocketServ, OK, MAXSTRING, 0);
-                        cout << "Message envoye " << OK << endl;
-                        free(word);// free(pt); free(log); free(pwd);
+                        sprintf(msgServeur, "%d", OK);
+                        sock.Send_Message(hSocketServ, msgServeur, 0);
+                        cout << "Message envoye " << msgServeur << endl;
+                        free(word);
                         return EXIT_SUCCESS;
                     } else {
-                        strcpy(msgServeur, PWD);
+                        sprintf(msgServeur, "%d", PWD);
                         break;
                     }
 				}
@@ -193,9 +197,9 @@ bool VerifLogin(int hSocketServ) {
 		}
 		fclose(fp);
 	} else
-        strcpy(msgServeur, EMPTY);  // Pas de fichier
+        sprintf(msgServeur, "%d", EMPTY);
 
-    Send_Message(hSocketServ, msgServeur, MAXSTRING, 0);
+    sock.Send_Message(hSocketServ, msgServeur, 0);
     cout << "Message envoye " << msgServeur << endl;
 
     free(word);
@@ -208,18 +212,18 @@ bool VerifLogin(int hSocketServ) {
     Reçoit un billet et vérifie s'il est dans la base de données
 */
 bool VerifTicket(int hSocketServ) {
-    char msgClient[100], msgServeur[100];
+    char msgClient[MAXSTRING], msgServeur[MAXSTRING];
 
 
 /* Réception du message */
-	Receive_Message(hSocketServ, msgClient, MAXSTRING, 0);
+	sock.Receive_Message(hSocketServ, msgClient, 0);
 	char* bi = (char*)malloc(sizeof(msgClient));
 	strcpy(bi, msgClient);
 
 
 /* Vérifie si les billets sont dans le fichiers .csv */
 	FILE* fp;
-	fp = fopen("billets.csv", "r+t");
+	fp = fopen(TICFILE, "r+t");
 	if(fp != NULL) {
 		fseek(fp, 0, SEEK_END);
 		int size = ftell(fp);
@@ -230,26 +234,27 @@ bool VerifTicket(int hSocketServ) {
 
         char* word = NULL;
 		for(int i = 1; ; i++) {
-			if((word = Read_Line(i, txt)) == NULL) {
-                strcpy(msgServeur, LOG);
+			if((word = sock.Read_Line(i, txt)) == NULL) {
+                sprintf(msgServeur, "%d", LOG);
                 break;
 			} else {
 				if(strcmp(bi, word) == 0) {
-                    Send_Message(hSocketServ, OK, MAXSTRING, 0);
-                    cout << "Message envoye " << OK << endl;
+                    sprintf(msgServeur, "%d", OK);
+                    sock.Send_Message(hSocketServ, msgServeur, 0);
+                    cout << "Message envoye " << msgServeur << endl;
                     free(bi);
                     return EXIT_SUCCESS;
                 } else {
-                    strcpy(msgServeur, TIC);
+                    sprintf(msgServeur, "%d", TIC);
                     break;
                 }
 			}
 		}
 		fclose(fp);
 	} else
-        strcpy(msgServeur, EMPTY);  // Pas de fichier
+        sprintf(msgServeur, "%d", EMPTY);
 
-    Send_Message(hSocketServ, msgServeur, MAXSTRING, 0);
+    sock.Send_Message(hSocketServ, msgServeur, 0);
     cout << "Message envoye " << msgServeur << endl;
 
     free(bi);
@@ -262,13 +267,13 @@ bool VerifTicket(int hSocketServ) {
     Calcul l'excès de poids et montre le prix
 */
 char* VerifLuggage(int hSocketServ) {
-    char msgClient[100], msgServeur[100];
+    char msgClient[MAXSTRING], msgServeur[MAXSTRING];
     char *pt = NULL, *poidc = NULL;
 	int exces = 0, supp = 0, total = 0, poidi, i=1;
 
 
 // Réception du message
-	Receive_Message(hSocketServ, msgClient, MAXSTRING, 0);
+	sock.Receive_Message(hSocketServ, msgClient, 0);
     char* word = (char*)malloc(sizeof(msgClient));
 	char* ret = (char*)malloc(sizeof(msgClient));
     strcpy(word, msgClient);
@@ -280,7 +285,7 @@ char* VerifLuggage(int hSocketServ) {
 		poidc = strtok_r(word, ";", &pt);
 		word = NULL;
 		
-		if(i % 2 != 0) { //pour ne pas prendre les N et O
+		if(i % 2 != 0) { // Ne pas prendre les N et O
 			if(poidc == NULL) break;
 
 			poidi = atoi(poidc);
@@ -297,7 +302,7 @@ char* VerifLuggage(int hSocketServ) {
 	cout << "Supplement a payer : " << supp << " EUR" << endl;
 
 	sprintf(msgServeur, "%d", supp);
-	Send_Message(hSocketServ, msgServeur, MAXSTRING, 0);
+	sock.Send_Message(hSocketServ, msgServeur, 0);
 
     free(word);
 
@@ -310,11 +315,11 @@ char* VerifLuggage(int hSocketServ) {
     Encode les bagages dans un fichier
 */
 bool PaymentDone(int hSocketServ, char* bag) {
-    char msgClient[100];//, msgServeur[100];
+    char msgClient[MAXSTRING];//, msgServeur[100];
 
 
 // Réception du message
-	Receive_Message(hSocketServ, msgClient, MAXSTRING, 0);
+	sock.Receive_Message(hSocketServ, msgClient, 0);
 	cout << "Paiement effectue ? Y" << endl;
 
 
@@ -344,7 +349,7 @@ bool PaymentDone(int hSocketServ, char* bag) {
 
             if(valise == NULL) break;
 
-            if(i % 2 == 0 && i > 0) { //pour prendre les N et O
+            if(i % 2 == 0 && i > 0) { // Pour prendre les N et O
                 strcpy(line, "\r");
                 strcat(line, tic1);
                 strcat(line, "-");
@@ -374,7 +379,8 @@ bool PaymentDone(int hSocketServ, char* bag) {
         }
         fclose(fp);
     }
-	Send_Message(hSocketServ, OK, MAXSTRING, 0);
+    sprintf(msgClient, "%d", OK);
+	sock.Send_Message(hSocketServ, msgClient, 0);
 
 	return EXIT_SUCCESS;
 }

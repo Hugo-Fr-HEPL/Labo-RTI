@@ -7,13 +7,13 @@
 #define CHECK_LUGGAGE 4
 #define PAYMENT_DONE 5
 
-#define EMPTY "EMPTY"
-#define OK "OK"
+#define EMPTY 6
+#define OK 7
 
-#define LOG "LOGIN"
-#define PWD "PASSWORD"
+#define LOG 8
+#define PWD 9
 
-#define TIC "TICKET"
-#define NB "NB_LUGGAGE"
+#define TIC 10
+#define NB 11
 
 #endif
