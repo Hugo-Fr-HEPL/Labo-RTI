@@ -1,9 +1,10 @@
 #include "serveur_checkin.h"
 
-// ENTER SI FINI (payment appcheck)
+// ENTER SI FINI (payment appcheck) -> O N
 // Nombre d'accompagnants
 // Fermer le serv -> tout fermer
 // Le serveur s'arrête quand un client s'arrête
+// LOGOUT
 
 int main() {
 	int hSocketEcoute, hSocketService;

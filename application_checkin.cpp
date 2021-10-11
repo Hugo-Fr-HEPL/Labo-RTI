@@ -7,7 +7,7 @@ int main() {
 
 	properties prop = sock.Load_Properties(PROPFILE);
 
-	int hSocketClient = sock.Create_Socket(AF_INET, SOCK_STREAM, 0);
+	hSocketClient = sock.Create_Socket(AF_INET, SOCK_STREAM, 0);
 
 	struct sockaddr_in adresse = sock.Infos_Host(prop);
 	//struct in_addr adresseIP = adresse.sin_addr;
@@ -19,7 +19,7 @@ int main() {
 	char* send = (char*)malloc(sizeof(int));
 	sprintf(send, "%d", LOGIN_OFFICER);
 	sock.Send_Message(hSocketClient, send, 0);
-	while(Login(hSocketClient) != EXIT_SUCCESS);
+	while(Login() != EXIT_SUCCESS);
 
 
 	do {
@@ -27,17 +27,17 @@ int main() {
 		sprintf(send, "%d", CHECK_TICKET);
 		sock.Send_Message(hSocketClient, send, 0);
 		char* ticket = NULL;
-		while((ticket = Ticket(hSocketClient)) == NULL);
+		while((ticket = Ticket()) == NULL);
 
 //Encoder bagages
 		sprintf(send, "%d", CHECK_LUGGAGE);
 		sock.Send_Message(hSocketClient, send, 0);
-		int total = Luggage(hSocketClient);
+		int total = Luggage();
 
 // Paiement
 		sprintf(send, "%d", PAYMENT_DONE);
 		sock.Send_Message(hSocketClient, send, 0);
-		Payment(hSocketClient, total, ticket);
+		Payment(total, ticket);
 
 		cout << endl << "Nouveau ticket :" << endl;
 	} while(1);
@@ -60,7 +60,7 @@ int main() {
 	Envoie ses infos de connexion au serveur
 	return EXIT_SUCCESS on success
 */
-bool Login(int hSocketClient) {
+bool Login() {
 	char msgClient[MAXSTRING] = "", msgServeur[MAXSTRING];
 	char login[30], password[30];
 
@@ -86,7 +86,7 @@ bool Login(int hSocketClient) {
 	Envoie les billets au serveur
 	Renvoie le ticket ou NULL
 */
-char* Ticket(int hSocketClient) {
+char* Ticket() {
 	char msgClient[MAXSTRING] = "", msgServeur[MAXSTRING];
 	char tmp[30];
 
@@ -113,7 +113,7 @@ char* Ticket(int hSocketClient) {
 /*
 	Envoie les infos des bagages au serveur
 */
-int Luggage(int hSocketClient) {
+int Luggage() {
 	char msgClient[MAXSTRING] = "", msgServeur[MAXSTRING];
 	float poids;
 	int nombrebag;
@@ -148,14 +148,14 @@ int Luggage(int hSocketClient) {
 /*
 	Valide le paiement
 */
-bool Payment(int hSocketClient, int supplement, char* ticket) {
+bool Payment(int supplement, char* ticket) {
 	char msgServeur[MAXSTRING];
 
-	if(supplement > 0)
+	if(supplement > 0) {
 		cout << "Prix du supplement de bagages : " << supplement << " EUR" << endl;
-	else
+		cout << "Enter pour payer" << endl << endl;
+	} else
 		cout << "Pas de supplement a payer" << endl;
-	cout << "Enter pour payer" << endl << endl;
 	cin.ignore();
 
 	sock.Send_Message(hSocketClient, ticket, 0);
