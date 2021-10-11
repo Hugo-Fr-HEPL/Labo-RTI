@@ -1,11 +1,7 @@
-*.o
-*.txt
-*.pdf
-Serveur
-Client
+#*.o
+#*.txt
+#*.pdf
 Serv
 AppCheck
-serveur.cpp
-client.cpp
 core
 makefile
