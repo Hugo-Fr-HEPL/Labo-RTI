@@ -1,6 +1,6 @@
-#*.o
-#*.txt
-#*.pdf
+*.o
+*.txt
+*.pdf
 Serv
 AppCheck
 core
