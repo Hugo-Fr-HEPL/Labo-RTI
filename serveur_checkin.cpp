@@ -1,9 +1,6 @@
 #include "serveur_checkin.h"
 
-// ENTER SI FINI (payment appcheck) -> O N
 // Nombre d'accompagnants
-// Fermer le serv -> tout fermer
-// Le serveur s'arrête quand un client s'arrête
 // LOGOUT
 
 int main() {
@@ -50,6 +47,7 @@ int main() {
 
             char* msgServeur = NULL;
             sprintf(msgServeur, DOC);
+            printf("TEST\n");
             sock.Send_Message(hSocketService, msgServeur, 0);
         } else {
             printf("Connexion sur la socket num %d\n", i);
@@ -62,8 +60,6 @@ int main() {
             pthread_mutex_unlock(&mutexIndiceCourant);
             pthread_cond_signal(&condIndiceCourant);
         }
-
-        //Receive_Message(hSocketService, msgClient, 0);
     } while(1);
 
     close(hSocketEcoute);
@@ -104,37 +100,50 @@ void* fctThread(void* param) {
         finDialogue = 0;
         do {
             if(sock.Receive_Message(hSocketServ, msgClient, 0) == EXIT_FAILURE) {
-                finDialogue = 1;
                 break;
             }
             cout << "Message recu " << msgClient << endl;
 
-            if(strcmp(msgClient, EOC) == 0) {
-                finDialogue = 1;
-                sock.Send_Message(hSocketServ, EOC, 0);
+            switch(atoi(msgClient)) {
+            case LOGIN_OFFICER:
+                while(1) {
+                    if(VerifLogin(hSocketServ) == EXIT_SUCCESS)
+                        break;
+                    else if(VerifLogin(hSocketServ) == 2) {
+                        finDialogue = 1;
+                        break;
+                    }
+                }
                 break;
-            } else {
-                switch(atoi(msgClient)) {
-                case LOGIN_OFFICER:
-                    while(VerifLogin(hSocketServ) != EXIT_SUCCESS);
-                    break;
-                case LOGOUT_OFFICER: // TO DO
-                    break;
-                case CHECK_TICKET:
-                    while(VerifTicket(hSocketServ) != EXIT_SUCCESS);
-                    break;
-                case CHECK_LUGGAGE: 
-					bag = VerifLuggage(hSocketServ);
-                    break;
-                case PAYMENT_DONE:
-                    PaymentDone(hSocketServ, bag);
+            case LOGOUT_OFFICER: // TO DO
+                break;
+            case CHECK_TICKET:
+                while(1) {
+                    if(VerifTicket(hSocketServ) == EXIT_SUCCESS)
+                        break;
+                    else if(VerifTicket(hSocketServ) == 2) {
+                        finDialogue = 1;
+                        break;
+                    }
+                }
+                break;
+            case CHECK_LUGGAGE:
+                bag = VerifLuggage(hSocketServ);
+                if(strcmp(bag, "EOC") == 0) {
+                    finDialogue = 1;
                     break;
                 }
+                break;
+            case PAYMENT_DONE:
+                if(PaymentDone(hSocketServ, bag) == 2) {
+                    finDialogue = 1;
+                    break;
+                }
+                break;
             }
         } while(!finDialogue);
-
         pthread_mutex_lock(&mutexIndiceCourant);
-        hSocketConnectee[iCliTraite] = -1; 
+        hSocketConnectee[iCliTraite] = -1;
         pthread_mutex_unlock(&mutexIndiceCourant);
     }
     close(hSocketServ);
@@ -145,13 +154,14 @@ void* fctThread(void* param) {
 /*
     Reçoit les infos du client et vérifie si elles sont valides pour se connecter
 */
-bool VerifLogin(int hSocketServ) {
+int VerifLogin(int hSocketServ) {
     char msgClient[MAXSTRING], msgServeur[MAXSTRING];
     char *pt = NULL;
 
 
 // Réception du message
-	sock.Receive_Message(hSocketServ, msgClient, 0);
+	if(sock.Receive_Message(hSocketServ, msgClient, 0) == EXIT_FAILURE)
+        return 2;
     char* word = (char*)malloc(sizeof(msgClient));
     strcpy(word, msgClient);
 
@@ -212,12 +222,13 @@ bool VerifLogin(int hSocketServ) {
 /*
     Reçoit un billet et vérifie s'il est dans la base de données
 */
-bool VerifTicket(int hSocketServ) {
+int VerifTicket(int hSocketServ) {
     char msgClient[MAXSTRING], msgServeur[MAXSTRING];
 
 
 /* Réception du message */
-	sock.Receive_Message(hSocketServ, msgClient, 0);
+	if(sock.Receive_Message(hSocketServ, msgClient, 0) == EXIT_FAILURE)
+        return 2;
 	char* bi = (char*)malloc(sizeof(msgClient));
 	strcpy(bi, msgClient);
 
@@ -274,7 +285,11 @@ char* VerifLuggage(int hSocketServ) {
 
 
 // Réception du message
-	sock.Receive_Message(hSocketServ, msgClient, 0);
+	if(sock.Receive_Message(hSocketServ, msgClient, 0) == EXIT_FAILURE) {
+        char* ret = (char*)malloc(sizeof("EOC"));
+        strcpy(ret, "EOC");
+        return ret;
+    }
     char* word = (char*)malloc(sizeof(msgClient));
 	char* ret = (char*)malloc(sizeof(msgClient));
     strcpy(word, msgClient);
@@ -315,12 +330,17 @@ char* VerifLuggage(int hSocketServ) {
     Vérifie si le paiement a été fait
     Encode les bagages dans un fichier
 */
-bool PaymentDone(int hSocketServ, char* bag) {
+int PaymentDone(int hSocketServ, char* bag) {
     char msgClient[MAXSTRING];//, msgServeur[100];
 
 
 // Réception du message
-	sock.Receive_Message(hSocketServ, msgClient, 0);
+	if(sock.Receive_Message(hSocketServ, msgClient, 0) == EXIT_FAILURE)
+        return 2;
+    if(strcmp(msgClient, "N") == 0) {
+        sock.Send_Message(hSocketServ, EOC, 0);
+        return 2;
+    }
 	cout << "Paiement effectue ? Y" << endl;
 
 

@@ -18,10 +18,10 @@ typedef struct paramThread {
 
 
 void* fctThread(void* param);
-bool VerifLogin(int socket);
-bool VerifTicket(int socket);
+int VerifLogin(int socket);
+int VerifTicket(int socket);
 char* VerifLuggage(int socket);
-bool PaymentDone(int socket, char* bag);
+int PaymentDone(int socket, char* bag);
 
 
 pthread_mutex_t mutexIndiceCourant;

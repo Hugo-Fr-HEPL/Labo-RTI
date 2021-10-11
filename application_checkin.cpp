@@ -42,16 +42,6 @@ int main() {
 		cout << endl << "Nouveau ticket :" << endl;
 	} while(1);
 
-//	do {
-//		Send_Message(hSocketClient, msgClient, 0);
-
-//		if(strcmp(msgClient, EOC)) {
-//			Receive_Message(hSocketClient, msgServeur, 0);
-
-//			strcpy(msgClient, EOC);
-//		}
-//	} while(strcmp(msgClient, EOC) && strcmp(msgServeur, DOC));
-
 	CloseConnection(hSocketClient);
 }
 
@@ -76,7 +66,8 @@ bool Login() {
 	strcat(msgClient, "\0");
 
 	sock.Send_Message(hSocketClient, msgClient, 0);
-	sock.Receive_Message(hSocketClient, msgServeur, 0);
+	if(sock.Receive_Message(hSocketClient, msgServeur, 0) == EXIT_FAILURE)
+		CloseConnection(hSocketClient);
 
 	return ShowMessage(msgServeur);
 }
@@ -99,7 +90,8 @@ char* Ticket() {
 	strcat(msgClient, "\0");
 
 	sock.Send_Message(hSocketClient, msgClient, 0);
-	sock.Receive_Message(hSocketClient, msgServeur, 0);
+	if(sock.Receive_Message(hSocketClient, msgServeur, 0) == EXIT_FAILURE)
+		CloseConnection(hSocketClient);
 
 	if(ShowMessage(msgServeur) == EXIT_SUCCESS) {
 		char* billet = (char*)malloc(sizeof(tmp));
@@ -116,9 +108,11 @@ char* Ticket() {
 int Luggage() {
 	char msgClient[MAXSTRING] = "", msgServeur[MAXSTRING];
 	float poids;
-	int nombrebag;
+	int nombrebag, nombreacc;
 	char valise, txt[20] = "";
-	
+
+	cout << "Nombre d'accompagnants ? ";
+	cin >> nombreacc;
 	cout << "Nombre de bagages ? ";
 	cin >> nombrebag;
 
@@ -139,7 +133,8 @@ int Luggage() {
 	strcat(msgClient, "\0");
 
 	sock.Send_Message(hSocketClient, msgClient, 0);
-	sock.Receive_Message(hSocketClient, msgServeur, 0);
+	if(sock.Receive_Message(hSocketClient, msgServeur, 0) == EXIT_FAILURE)
+		CloseConnection(hSocketClient);
 
 	return atoi(msgServeur);
 }
@@ -150,16 +145,27 @@ int Luggage() {
 */
 bool Payment(int supplement, char* ticket) {
 	char msgServeur[MAXSTRING];
+		char choice = 'O';
 
 	if(supplement > 0) {
 		cout << "Prix du supplement de bagages : " << supplement << " EUR" << endl;
-		cout << "Enter pour payer" << endl << endl;
+		do {
+			cout << "Payer le supplement (oui = O, non = N)? ";
+			cin >> choice;
+		} while(choice != 'O' && choice != 'N');
 	} else
 		cout << "Pas de supplement a payer" << endl;
-	cin.ignore();
 
-	sock.Send_Message(hSocketClient, ticket, 0);
+	if(choice == 'O')
+		sock.Send_Message(hSocketClient, ticket, 0);
+	else
+		sock.Send_Message(hSocketClient, "N", 0);
+
 	sock.Receive_Message(hSocketClient, msgServeur, 0);
+	if(strcmp(msgServeur, EOC) == 0) {
+		printf("TEST\n");
+		CloseConnection(hSocketClient);
+	}
 
 	return EXIT_SUCCESS;
 }

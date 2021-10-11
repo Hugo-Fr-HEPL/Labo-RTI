@@ -20,7 +20,7 @@ using namespace std;
 
 #define PROPFILE "./conf/properties.txt"
 #define PORT 50000
-#define NBSERVER 2
+#define NBSERVER 1
 
 
 #define DOC "DENY_OF_CONNEXION"
