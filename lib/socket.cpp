@@ -116,10 +116,11 @@ properties Socket::Load_Properties(const char* nomFichier) {
 				if(strcmp(param, "Host") == 0) {
 					prop.machine = (char*)malloc(strlen(val));
 					strcpy(prop.machine, val);
-				} else if(strcmp(param, "Port") == 0)
+				} else if(strcmp(param, "Port") == 0) {
 					prop.port = atoi(val);
-				else if(strcmp(param, "Servers") == 0)
+				} else if(strcmp(param, "Servers") == 0) {
 					prop.nbServer = atoi(val);
+				}
 			}
 		}
 	}
@@ -146,6 +147,9 @@ char* Socket::Read_Line(int line, char* src) {
 			return NULL;
 		}
 	}
+
+// J'ai dû ajouter ça parce que ça plantait sinon
+j++;
 
 	char txt[200];
 	int k = 0;

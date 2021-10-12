@@ -14,6 +14,9 @@ int main() {
 
 	sock.Connect_Client(hSocketClient, (struct sockaddr*)&adresse);
 
+	char msgServeur[MAXSTRING];
+	if(sock.Receive_Message(hSocketClient, msgServeur, 0) == EXIT_FAILURE)
+		CloseConnection(hSocketClient);
 
 // Connexion
 	char* send = (char*)malloc(sizeof(int));

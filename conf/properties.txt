@@ -1,1 +1,3 @@
-Host=hugo-linux;Port=50000;Servers=2;
+Host=hugo-linux;
+Port=50000;
+Servers=5;

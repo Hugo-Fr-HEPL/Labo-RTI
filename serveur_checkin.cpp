@@ -1,6 +1,6 @@
 #include "serveur_checkin.h"
 
-// Nombre d'accompagnants
+// Nombre d'accompagnants -> Variable Globales
 // LOGOUT
 
 int main() {
@@ -45,12 +45,12 @@ int main() {
         if(i == prop.nbServer) {
             printf("Plus de connexion disponible\n");
 
-            char* msgServeur = NULL;
-            sprintf(msgServeur, DOC);
-            printf("TEST\n");
-            sock.Send_Message(hSocketService, msgServeur, 0);
+            close(hSocketService);
         } else {
             printf("Connexion sur la socket num %d\n", i);
+
+            char msgServeur[MAXSTRING] = "CONNEXION";
+            sock.Send_Message(hSocketService, msgServeur, 0);
 
             pthread_mutex_lock(&mutexIndiceCourant);
 
