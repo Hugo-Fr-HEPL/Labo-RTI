@@ -5,24 +5,27 @@
 #include "airport.h"
 
 
-bool Login();
-char* Ticket();
-int Luggage();
-bool Payment(int total, char* ticket);
+void MainLoop();
 
-void CloseConnection(int socket);
+bool Login();
+bool Ticket();
+void Luggage();
+void Payment();
+
+void CloseConnection();
 bool ShowMessage(char* msg);
 
-class AppCheck {
-	public:
-		int hSocketClient;
-        char msgClient[MAXSTRING], msgServer[MAXSTRING];
-        char* ticket = NULL;
-        int total;
-};
+
+typedef struct AppCheck {
+    int hSock;
+    char msgCli[MAXSTRING], msgServ[MAXSTRING];
+    char *ticket = NULL;
+    int accomp, lug;
+    int supp;
+}AppCheck;
 
 
 SocketClient sock;
-int hSocketClient;
+AppCheck cli;
 
 #endif

@@ -148,9 +148,6 @@ char* Socket::Read_Line(int line, char* src) {
 		}
 	}
 
-// J'ai dû ajouter ça parce que ça plantait sinon
-j++;
-
 	char txt[200];
 	int k = 0;
 	while(i == line) {
@@ -163,7 +160,6 @@ j++;
 			k++;
 		}
 	}
-
 	char* ret = (char*)malloc(sizeof(txt));
 	strcpy(ret, txt);
 

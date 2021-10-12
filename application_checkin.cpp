@@ -2,50 +2,76 @@
 
 
 int main() {
-	//char msgClient[MAXSTRING], msgServeur[MAXSTRING];
+	char msgServeur[MAXSTRING];
 
 
+// Connexion au serveur
 	properties prop = sock.Load_Properties(PROPFILE);
-
-	hSocketClient = sock.Create_Socket(AF_INET, SOCK_STREAM, 0);
-
+	cli.hSock = sock.Create_Socket(AF_INET, SOCK_STREAM, 0);
 	struct sockaddr_in adresse = sock.Infos_Host(prop);
 	//struct in_addr adresseIP = adresse.sin_addr;
+	sock.Connect_Client(cli.hSock, (struct sockaddr*)&adresse);
 
-	sock.Connect_Client(hSocketClient, (struct sockaddr*)&adresse);
 
-	char msgServeur[MAXSTRING];
-	if(sock.Receive_Message(hSocketClient, msgServeur, 0) == EXIT_FAILURE)
-		CloseConnection(hSocketClient);
+// Vérification si assez de place
+	if(sock.Receive_Message(cli.hSock, msgServeur, 0) == EXIT_FAILURE)
+		CloseConnection();
 
-// Connexion
-	char* send = (char*)malloc(sizeof(int));
-	sprintf(send, "%d", LOGIN_OFFICER);
-	sock.Send_Message(hSocketClient, send, 0);
-	while(Login() != EXIT_SUCCESS);
 
+	MainLoop();
+
+
+	CloseConnection();
+}
+
+
+/*
+	Boucle à travers toutes les actions du client
+*/
+void MainLoop() {
+	char msgClient[MAXSTRING];
+	int choice = 0;
 
 	do {
+		cout << "Que voulez-vous faire ?" << endl;
+		if(choice == 0)
+			cout << "1. Se connecter" << endl;
+		if(choice >= 1) {
+			cout << "1. Changer de compte" << endl;
+			cout << "2. Garder le même compte" << endl;
+		}
+		cout << "0. Fermer l'application" << endl;
+		cin >> choice;
+
+// Reset Values
+		cli.ticket = NULL;
+
+
+// Connexion
+		if(choice == 0) break;
+		if(choice == 1) {
+			sprintf(msgClient, "%d", LOGIN_OFFICER);
+			sock.Send_Message(cli.hSock, msgClient, 0);
+			while(Login() != EXIT_SUCCESS);
+		}
+
 // Encoder ticket
-		sprintf(send, "%d", CHECK_TICKET);
-		sock.Send_Message(hSocketClient, send, 0);
-		char* ticket = NULL;
-		while((ticket = Ticket()) == NULL);
+		sprintf(msgClient, "%d", CHECK_TICKET);
+		sock.Send_Message(cli.hSock, msgClient, 0);
+		while(Ticket() != EXIT_SUCCESS);
 
 //Encoder bagages
-		sprintf(send, "%d", CHECK_LUGGAGE);
-		sock.Send_Message(hSocketClient, send, 0);
-		int total = Luggage();
+		sprintf(msgClient, "%d", CHECK_LUGGAGE);
+		sock.Send_Message(cli.hSock, msgClient, 0);
+		Luggage();
 
 // Paiement
-		sprintf(send, "%d", PAYMENT_DONE);
-		sock.Send_Message(hSocketClient, send, 0);
-		Payment(total, ticket);
+		sprintf(msgClient, "%d", PAYMENT_DONE);
+		sock.Send_Message(cli.hSock, msgClient, 0);
+		Payment();
 
 		cout << endl << "Nouveau ticket :" << endl;
 	} while(1);
-
-	CloseConnection(hSocketClient);
 }
 
 
@@ -68,9 +94,9 @@ bool Login() {
 	strcat(msgClient, password);
 	strcat(msgClient, "\0");
 
-	sock.Send_Message(hSocketClient, msgClient, 0);
-	if(sock.Receive_Message(hSocketClient, msgServeur, 0) == EXIT_FAILURE)
-		CloseConnection(hSocketClient);
+	sock.Send_Message(cli.hSock, msgClient, 0);
+	if(sock.Receive_Message(cli.hSock, msgServeur, 0) == EXIT_FAILURE)
+		CloseConnection();
 
 	return ShowMessage(msgServeur);
 }
@@ -80,7 +106,7 @@ bool Login() {
 	Envoie les billets au serveur
 	Renvoie le ticket ou NULL
 */
-char* Ticket() {
+bool Ticket() {
 	char msgClient[MAXSTRING] = "", msgServeur[MAXSTRING];
 	char tmp[30];
 
@@ -92,38 +118,38 @@ char* Ticket() {
 	strcat(msgClient, ";");
 	strcat(msgClient, "\0");
 
-	sock.Send_Message(hSocketClient, msgClient, 0);
-	if(sock.Receive_Message(hSocketClient, msgServeur, 0) == EXIT_FAILURE)
-		CloseConnection(hSocketClient);
+	sock.Send_Message(cli.hSock, msgClient, 0);
+	if(sock.Receive_Message(cli.hSock, msgServeur, 0) == EXIT_FAILURE)
+		CloseConnection();
 
 	if(ShowMessage(msgServeur) == EXIT_SUCCESS) {
-		char* billet = (char*)malloc(sizeof(tmp));
-		strcpy(billet, tmp);
-		return billet;
+		cli.ticket = (char*)malloc(sizeof(tmp));
+		strcpy(cli.ticket, tmp);
+		return EXIT_SUCCESS;
 	}
-	return NULL;
+	return EXIT_FAILURE;
 }
 
 
 /*
 	Envoie les infos des bagages au serveur
 */
-int Luggage() {
+void Luggage() {
 	char msgClient[MAXSTRING] = "", msgServeur[MAXSTRING];
 	float poids;
-	int nombrebag, nombreacc;
 	char valise, txt[20] = "";
 
 	cout << "Nombre d'accompagnants ? ";
-	cin >> nombreacc;
+	cin >> cli.accomp;
 	cout << "Nombre de bagages ? ";
-	cin >> nombrebag;
+	cin >> cli.lug;
 
-	for(int i = 1; i <= nombrebag; i++) {
-		cout << "Poids du bagage n°" << i << " (Enter si fini) : ";
+	for(int i = 1; i <= cli.lug; i++) {
+		cout << "Poids du bagage n°" << i << " : ";
 		cin >> poids;
 		do {
-			cout << "Valise (oui = O, non = N)? ";
+			cout << "Valise ? " << endl;
+			cout << "O. Oui | N. Non" << endl;
 			cin >> valise;
 		} while(valise != 'O' && valise != 'N');
 
@@ -135,50 +161,45 @@ int Luggage() {
 	}
 	strcat(msgClient, "\0");
 
-	sock.Send_Message(hSocketClient, msgClient, 0);
-	if(sock.Receive_Message(hSocketClient, msgServeur, 0) == EXIT_FAILURE)
-		CloseConnection(hSocketClient);
-
-	return atoi(msgServeur);
+	sock.Send_Message(cli.hSock, msgClient, 0);
+	if(sock.Receive_Message(cli.hSock, msgServeur, 0) == EXIT_FAILURE)
+		CloseConnection();
 }
 
 
 /*
 	Valide le paiement
 */
-bool Payment(int supplement, char* ticket) {
+void Payment() {
 	char msgServeur[MAXSTRING];
-		char choice = 'O';
+	char choice = 'O';
 
-	if(supplement > 0) {
-		cout << "Prix du supplement de bagages : " << supplement << " EUR" << endl;
+	if(cli.supp > 0) {
+		cout << "Prix du supplement de bagages : " << cli.supp << " EUR" << endl;
 		do {
-			cout << "Payer le supplement (oui = O, non = N)? ";
+			cout << "Payer le supplement ? " << endl;
+			cout << "O. Oui | N. Non" << endl;
 			cin >> choice;
 		} while(choice != 'O' && choice != 'N');
 	} else
 		cout << "Pas de supplement a payer" << endl;
 
 	if(choice == 'O')
-		sock.Send_Message(hSocketClient, ticket, 0);
+		sock.Send_Message(cli.hSock, cli.ticket, 0);
 	else
-		sock.Send_Message(hSocketClient, "N", 0);
+		sock.Send_Message(cli.hSock, "N", 0);
 
-	sock.Receive_Message(hSocketClient, msgServeur, 0);
-	if(strcmp(msgServeur, EOC) == 0) {
-		printf("TEST\n");
-		CloseConnection(hSocketClient);
-	}
-
-	return EXIT_SUCCESS;
+	sock.Receive_Message(cli.hSock, msgServeur, 0);
+	if(strcmp(msgServeur, EOC) == 0)
+		CloseConnection();
 }
 
 
 /*
 	Ferme tout proprement
 */
-void CloseConnection(int hSocketClient) {
-	close(hSocketClient);
+void CloseConnection() {
+	close(cli.hSock);
     printf("Socket client ferme\n");
 	exit(EXIT_FAILURE);
 }

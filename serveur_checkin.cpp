@@ -1,7 +1,6 @@
 #include "serveur_checkin.h"
 
-// Nombre d'accompagnants -> Variable Globales
-// LOGOUT
+// Check lug.csv to not write the same ticket twice
 
 int main() {
 	int hSocketEcoute, hSocketService;
