@@ -164,6 +164,8 @@ void Luggage() {
 	sock.Send_Message(cli.hSock, msgClient, 0);
 	if(sock.Receive_Message(cli.hSock, msgServeur, 0) == EXIT_FAILURE)
 		CloseConnection();
+
+	cli.supp = atoi(msgServeur);
 }
 
 

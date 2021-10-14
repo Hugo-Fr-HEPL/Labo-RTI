@@ -53,7 +53,7 @@ bool Socket::Receive_Message(int hSocketSource, void* message, int flagUrgdest) 
 		cout << "Erreur sur le receive " << errno << endl;
 		exit(1);
 	} else if(ret == 0) {
-		printf("Fin de connexion\n");
+        cout << "Fin de connexion" << endl;
 		return EXIT_FAILURE;
 	}
 	return EXIT_SUCCESS;

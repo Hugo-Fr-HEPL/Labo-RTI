@@ -338,6 +338,7 @@ int PaymentDone(int hSocketServ, char* bag) {
         return 2;
     if(strcmp(msgClient, "N") == 0) {
         sock.Send_Message(hSocketServ, EOC, 0);
+        cout << "Fin de connexion" << endl;
         return 2;
     }
 	cout << "Paiement effectue ? Y" << endl;
