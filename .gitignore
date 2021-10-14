@@ -6,3 +6,4 @@ AppCheck
 core
 makefile
 .vscode/
+.gitignore
