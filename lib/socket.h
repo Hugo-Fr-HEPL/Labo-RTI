@@ -18,7 +18,9 @@ using namespace std;
 
 #define MAXSTRING 100
 
+// Modifier ici plutôt que dans properties.txt -> bug
 #define PROPFILE "./conf/properties.txt"
+#define IP "10.59.22.51"
 #define PORT 50000
 #define NBSERVER 5
 
@@ -40,7 +42,7 @@ class Socket {
 	public:
 		int Create_Socket(int domain, int type, int protocol);
 		sockaddr_in Infos_Host(properties prop);
-		void Bind_Socket(int handleSocket, const struct sockaddr *adress);
+		int Bind_Socket(int handleSocket, const struct sockaddr *adress);
 
 		void Send_Message(int hSocketCible, const void* message, int flagUrg);
 		bool Receive_Message(int hSocketSource, void* message, int flagUrgdest);

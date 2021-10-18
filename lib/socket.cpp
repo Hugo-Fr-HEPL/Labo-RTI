@@ -14,28 +14,30 @@ int Socket::Create_Socket(int domain, int type, int protocol) {
 sockaddr_in Socket::Infos_Host(properties prop) {
 	struct sockaddr_in adresse;
 
-	adresse.sin_addr.s_addr = inet_addr("192.168.4.138");
+	//adresse.sin_addr.s_addr = inet_addr("192.168.4.138");
 	//struct hostent *infosHost = getaddrinfo();
-/*
+
 	struct hostent *infosHost = gethostbyname(prop.machine);
 	if(infosHost == 0) {
 		cout << "Erreur d'acquisition d'infos sur le host " << errno << endl;
 		exit(1);
 	}
-*/
+
 	memset(&adresse, 0, sizeof(struct sockaddr_in));
 	adresse.sin_family = AF_INET;
 	adresse.sin_port = htons(prop.port);
-	//memcpy(&adresse.sin_addr, infosHost->h_addr, infosHost->h_length);
+	memcpy(&adresse.sin_addr, infosHost->h_addr, infosHost->h_length);
 
 	return adresse;
 }
 
-void Socket::Bind_Socket(int handleSocket, const struct sockaddr *adress) {
+int Socket::Bind_Socket(int handleSocket, const struct sockaddr *adress) {
 	if(bind(handleSocket, adress, sizeof(struct sockaddr_in)) == -1) {
 		cout << "Erreur sur le bind de la socket " << errno << endl;
+return 2;
 		exit(1);
 	}
+return 0;
 }
 
 
@@ -79,7 +81,7 @@ properties Socket::Load_Properties(const char* nomFichier) {
 		char* txt = (char*)malloc(10);
 
 		fprintf(fp, "Host=");
-		fprintf(fp, prop.machine, sizeof(prop.machine));
+		fprintf(fp, IP);
 		txt = NULL;
 
 		fprintf(fp, ";\rPort=");
@@ -139,6 +141,9 @@ char* Socket::Read_Line(int line, char* src) {
 		if(c == '\n' || c == '\r') {
 			i++;
 			j++;
+			if(*(src+j) == '\n' || *(src+j) == '\r') {
+				j++;
+			}
 		} else
 			j++;
 

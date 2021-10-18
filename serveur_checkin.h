@@ -27,6 +27,8 @@ int PaymentDone(int socket, char* bag);
 pthread_mutex_t mutexIndiceCourant;
 pthread_cond_t condIndiceCourant;
 
+pthread_mutex_t mutexFile;
+
 
 SocketServer sock;
 int indiceCourant = -1;

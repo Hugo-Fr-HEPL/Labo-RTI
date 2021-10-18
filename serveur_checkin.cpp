@@ -1,6 +1,13 @@
 #include "serveur_checkin.h"
 
 // Check lug.csv to not write the same ticket twice
+// Caractères de fin de string dnas les messages client-server
+
+//SQL
+// Poids bagage
+// Bagage payé?
+// Date du vol
+// IdClient dans billet - pas l'inverse
 
 int main() {
 	int hSocketEcoute, hSocketService;
@@ -14,12 +21,14 @@ int main() {
 // Initialisation des Threads
     pthread_mutex_init(&mutexIndiceCourant, NULL);
     pthread_cond_init(&condIndiceCourant, NULL);
+    pthread_mutex_init(&mutexFile, NULL);
 
 	hSocketEcoute = sock.Create_Socket(AF_INET, SOCK_STREAM, 0);
 
 	adresse = sock.Infos_Host(prop);
 
-	sock.Bind_Socket(hSocketEcoute, (struct sockaddr*)&adresse);
+    if(sock.Bind_Socket(hSocketEcoute, (struct sockaddr*)&adresse) != EXIT_SUCCESS) return EXIT_FAILURE;
+//while(sock.Bind_Socket(hSocketEcoute, (struct sockaddr*)&adresse) != 0) adresse.sin_port += 1;
 
 // Pool de Threads pour le serveur
     for(int i = 0; i < prop.nbServer; i++) {
@@ -170,6 +179,8 @@ int VerifLogin(int hSocketServ) {
 
 
 // Vérification des infos
+    pthread_mutex_lock(&mutexFile);
+
 	FILE* fp;
 	fp = fopen(LOGFILE, "r+t");
 	if(fp != NULL) {
@@ -197,6 +208,7 @@ int VerifLogin(int hSocketServ) {
                         sock.Send_Message(hSocketServ, msgServeur, 0);
                         cout << "Message envoye " << msgServeur << endl;
                         free(word);
+                        pthread_mutex_unlock(&mutexFile);
                         return EXIT_SUCCESS;
                     } else {
                         sprintf(msgServeur, "%d", PWD);
@@ -208,6 +220,7 @@ int VerifLogin(int hSocketServ) {
 		fclose(fp);
 	} else
         sprintf(msgServeur, "%d", EMPTY);
+    pthread_mutex_unlock(&mutexFile);
 
     sock.Send_Message(hSocketServ, msgServeur, 0);
     cout << "Message envoye " << msgServeur << endl;
@@ -233,6 +246,8 @@ int VerifTicket(int hSocketServ) {
 
 
 /* Vérifie si les billets sont dans le fichiers .csv */
+    pthread_mutex_lock(&mutexFile);
+
 	FILE* fp;
 	fp = fopen(TICFILE, "r+t");
 	if(fp != NULL) {
@@ -254,6 +269,7 @@ int VerifTicket(int hSocketServ) {
                     sock.Send_Message(hSocketServ, msgServeur, 0);
                     cout << "Message envoye " << msgServeur << endl;
                     free(bi);
+                    pthread_mutex_unlock(&mutexFile);
                     return EXIT_SUCCESS;
                 } else {
                     sprintf(msgServeur, "%d", TIC);
@@ -264,6 +280,7 @@ int VerifTicket(int hSocketServ) {
 		fclose(fp);
 	} else
         sprintf(msgServeur, "%d", EMPTY);
+    pthread_mutex_unlock(&mutexFile);
 
     sock.Send_Message(hSocketServ, msgServeur, 0);
     cout << "Message envoye " << msgServeur << endl;
@@ -356,6 +373,8 @@ int PaymentDone(int hSocketServ, char* bag) {
     ticket = NULL;
 
 // Sauvegarde du fichier
+    pthread_mutex_lock(&mutexFile);
+
     FILE* fp;
     fp = fopen(LUGFILE, "a+t");
     if(fp != NULL) {
@@ -400,6 +419,8 @@ int PaymentDone(int hSocketServ, char* bag) {
         }
         fclose(fp);
     }
+    pthread_mutex_unlock(&mutexFile);
+
     sprintf(msgClient, "%d", OK);
 	sock.Send_Message(hSocketServ, msgClient, 0);
 
