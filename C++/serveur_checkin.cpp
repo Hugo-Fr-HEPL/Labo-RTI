@@ -6,8 +6,9 @@
 //SQL
 // Poids bagage
 // Bagage payé?
-// Date du vol
+// Date dans vol
 // IdClient dans billet - pas l'inverse
+// Mot de passe clients
 
 int main() {
 	int hSocketEcoute, hSocketService;
