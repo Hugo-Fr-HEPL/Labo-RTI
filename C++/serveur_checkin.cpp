@@ -3,13 +3,6 @@
 // Check lug.csv to not write the same ticket twice
 // Caractères de fin de string dnas les messages client-server
 
-//SQL
-// Poids bagage
-// Bagage payé?
-// Date dans vol
-// IdClient dans billet - pas l'inverse
-// Mot de passe clients
-
 int main() {
 	int hSocketEcoute, hSocketService;
 	struct sockaddr_in adresse;
