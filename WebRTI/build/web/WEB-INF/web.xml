@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app version="3.1" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd">
+
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+	 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	 xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+	 version="3.1">
     <servlet>
-        <servlet-name>ServletConnection</servlet-name>
-        <servlet-class>PackageServlet.ServletConnection</servlet-class>
+        <servlet-name>ServletConn</servlet-name>
+        <servlet-class>PackageServlet.ServletConn</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>ServletConnection</servlet-name>
-        <url-pattern>/Connection</url-pattern>
+        <servlet-name>ServletConn</servlet-name>
+        <url-pattern>/ServletConn</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

@@ -21,7 +21,6 @@ public class MySQL {
 
         try {
             con = DriverManager.getConnection("jdbc:mysql://" + IP + ":" + port + "/" + BDD, user, password);
-            instruc = con.createStatement();
             System.out.println("Connexion à la base de donnée ok");
 
             return con;
@@ -45,7 +44,6 @@ public class MySQL {
             {
                 if(type.equals("UPDATE"))
                     instruc.executeUpdate(req);
-                    
             }
                 
         } catch (SQLException ex) {
