@@ -6,6 +6,20 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.io.*; 
 
+/*
+Obtenir une adresse de classe D précise et un port PORT_CHAT précis
+    Aura été obtenu en s'adressant en TCP à un serveur Serv_IAChat
+
+LOGIN_GROUP  quelqu'un veut se joindre au groupe 
+paramètres : nom et digest "salé" du mot de passe 
+Réponse : oui  + envoi de l'adresse et du port PORT_CHAT à utiliser ce jour;  
+        ou non
+
+En cas de succès, l'agent pourra alors réellement participer au chat 
+POST_QUESTION
+ANSWER_QUESTION
+POST_EVENT - Signale un fait mais n'attend pas de réponse (Tag supplémentaire pour différencier les events)
+*/
 
 public class App_JIAChat 
 {
@@ -14,10 +28,23 @@ public class App_JIAChat
     static MulticastSocket socketGroupe;
     static ThreadReception thr;
 
-    public static void main( String[] args )
+    static private int port = 5001;
+    static private String address = "234.5.5.9";
+
+
+    public static void main( String[] args ) throws InterruptedException
     {
-        System.out.println( "Hello World!" );
+        AskTCP();
         Connect();
+
+        TimeUnit.SECONDS.sleep(1);
+        System.out.println("oui 1 " + LMsgRecus);
+
+        BEnvoyerActionPerformed(null);
+        TimeUnit.SECONDS.sleep(1);
+        System.out.println("oui 2 " + LMsgRecus);
+
+        BArreterActionPerformed(null);
     }
 
     /*
@@ -36,10 +63,14 @@ public class App_JIAChat
     */
 
 
+    public static void AskTCP() {
+        
+    }
+
     public static void Connect() {
         try {
-            adresseGroupe = InetAddress.getByName("234.5.5.9");
-            socketGroupe = new MulticastSocket(5001);
+            adresseGroupe = InetAddress.getByName(address);
+            socketGroupe = new MulticastSocket(port);
             socketGroupe.joinGroup(adresseGroupe);
 
             thr = new ThreadReception (nomCli, socketGroupe, LMsgRecus);
@@ -48,31 +79,19 @@ public class App_JIAChat
             //nomCli = ZTNom.getText();
             nomCli = "Hugo";
             String msgDeb = nomCli + " rejoint le groupe";
-            DatagramPacket dtg = new DatagramPacket(msgDeb.getBytes(), msgDeb.length(), adresseGroupe, 5001);
+            DatagramPacket dtg = new DatagramPacket(msgDeb.getBytes(), msgDeb.length(), adresseGroupe, port);
             socketGroupe.send(dtg);
-
-            TimeUnit.SECONDS.sleep(1);
-            System.out.println("oui " + LMsgRecus);
-
-            BEnvoyerActionPerformed();
-            TimeUnit.SECONDS.sleep(1);
-            System.out.println("oui 2 " + LMsgRecus);
-
-            BArreterActionPerformed();
         }
         catch (UnknownHostException e){ System.out.println("Erreur :-( : " + e.getMessage()); }
         catch (IOException e){ System.out.println("Erreur :-( : " + e.getMessage()); }
-        catch (InterruptedException e) {
-            e.printStackTrace();
-        } 
     }
 
 
     //private void BEnvoyerActionPerformed(java.awt.event.ActionEvent evt) {
-    private static void BEnvoyerActionPerformed() {
+    private static void BEnvoyerActionPerformed(java.awt.event.ActionEvent evt) {
         //String msg = nomCli + "> " + ZTMessage.getText();
         String msg = nomCli + "> " + "Bonjour";
-        DatagramPacket dtg = new DatagramPacket(msg.getBytes(), msg.length(), adresseGroupe, 5001);
+        DatagramPacket dtg = new DatagramPacket(msg.getBytes(), msg.length(), adresseGroupe, port);
         try {
             socketGroupe.send(dtg);
         } catch (IOException e) {
@@ -82,9 +101,9 @@ public class App_JIAChat
 
 
     //private void BArreterActionPerformed(java.awt.event.ActionEvent evt) {
-    private static void BArreterActionPerformed() {
+    private static void BArreterActionPerformed(java.awt.event.ActionEvent evt) {
         String msg = nomCli + " quitte le groupe";
-        DatagramPacket dtg = new DatagramPacket(msg.getBytes(), msg.length(), adresseGroupe, 5001);
+        DatagramPacket dtg = new DatagramPacket(msg.getBytes(), msg.length(), adresseGroupe, port);
         try {
             socketGroupe.send(dtg);
             thr.stop();
