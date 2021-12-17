@@ -6,3 +6,4 @@ core
 makefile
 .vscode/
 .gitignore
+*.jsp
