@@ -4,17 +4,60 @@
  */
 package chat;
 
+import java.net.*;
+import java.io.*; 
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+
+
 /**
  *
  * @author Hugo
  */
 public class FApp_IAChat extends javax.swing.JFrame {
+    public static int POST_QUESTION = 1;
+    public static int ANSWER_QUESTION = -1;
+    public static int POST_EVENT = 0;
+    public static int EVENT_JOIN = 1;
+    public static int EVENT_LEAVE = 2;
 
+    static int msgNum = 0;
+
+    static private String nomCli = "test";
+    static private InetAddress adresseGroupe;
+    static MulticastSocket socketGroupe;
+    static ThreadReception thr;
+
+    static private int port = 5001;
+    //static private String address = "234.5.5.9";
+
+    
     /**
      * Creates new form FApp_IAChat
      */
     public FApp_IAChat() {
         initComponents();
+        jListMsg.setModel(new DefaultListModel<String>());
+    }
+    public FApp_IAChat(String nom, String add, int po) {
+        initComponents();
+        jListMsg.setModel(new DefaultListModel<String>());
+        
+        try {
+            adresseGroupe = InetAddress.getByName(add);
+            socketGroupe = new MulticastSocket(port = po);
+            socketGroupe.joinGroup(adresseGroupe);
+
+            thr = new ThreadReception (nomCli = nom, socketGroupe, jListMsg);
+            thr.start();
+
+            jLabelAccount.setText(nomCli);
+            String msgDeb = "<"+ POST_EVENT +">["+ EVENT_JOIN +"]";
+            DatagramPacket dtg = new DatagramPacket(msgDeb.getBytes(), msgDeb.length(), adresseGroupe, port);
+            socketGroupe.send(dtg);
+        }
+        catch (UnknownHostException e){ System.out.println("Erreur :-( : " + e.getMessage()); }
+        catch (IOException e){ System.out.println("Erreur :-( : " + e.getMessage()); }
     }
 
     /**
@@ -28,20 +71,16 @@ public class FApp_IAChat extends javax.swing.JFrame {
 
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextMsg = new javax.swing.JTextPane();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jTextAllMsg = new javax.swing.JTextArea();
         jButtonLeave = new javax.swing.JButton();
         jLabelAccount = new javax.swing.JLabel();
         jButtonSend = new javax.swing.JButton();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jListMsg = new javax.swing.JList<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jTextMsg.setToolTipText("Enter your message here");
         jScrollPane1.setViewportView(jTextMsg);
-
-        jTextAllMsg.setColumns(20);
-        jTextAllMsg.setRows(5);
-        jScrollPane2.setViewportView(jTextAllMsg);
 
         jButtonLeave.setText("Disconnect");
         jButtonLeave.addActionListener(new java.awt.event.ActionListener() {
@@ -57,6 +96,13 @@ public class FApp_IAChat extends javax.swing.JFrame {
             }
         });
 
+        jListMsg.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jListMsgMouseClicked(evt);
+            }
+        });
+        jScrollPane3.setViewportView(jListMsg);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -64,9 +110,9 @@ public class FApp_IAChat extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE)
+                    .addComponent(jScrollPane3)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jLabelAccount, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabelAccount, javax.swing.GroupLayout.DEFAULT_SIZE, 269, Short.MAX_VALUE)
                         .addGap(18, 18, 18)
                         .addComponent(jButtonLeave))
                     .addGroup(layout.createSequentialGroup()
@@ -83,7 +129,7 @@ public class FApp_IAChat extends javax.swing.JFrame {
                     .addComponent(jButtonLeave)
                     .addComponent(jLabelAccount))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jScrollPane1)
@@ -95,12 +141,50 @@ public class FApp_IAChat extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonLeaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLeaveActionPerformed
+        String msg = "<"+ POST_EVENT +">["+ EVENT_LEAVE +"]";
+        DatagramPacket dtg = new DatagramPacket(msg.getBytes(), msg.length(), adresseGroupe, port);
+        try {
+            socketGroupe.send(dtg);
+            thr.stop();
+
+            socketGroupe.leaveGroup(adresseGroupe); System.out.println("Après leaveGroup");
+
+            socketGroupe.close(); System.out.println("Après close");
+        } catch (IOException e) {
+            System.out.println("Erreur :-( : " + e.getMessage());
+        }
+        
         this.setVisible(false);
+        this.dispose();
     }//GEN-LAST:event_jButtonLeaveActionPerformed
 
     private void jButtonSendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSendActionPerformed
-        // TODO add your handling code here:
+        String msg = null;
+        if(msgNum == 0)
+            msg = "<"+ (Math.round(Math.random() * 98) + 1) +"> "+ jTextMsg.getText();
+        else if (msgNum <= ANSWER_QUESTION)
+            msg = "<"+ msgNum +"> "+ jTextMsg.getText();
+
+            System.out.println("tdsfdfsfrete " + msg);
+        DatagramPacket dtg = new DatagramPacket(msg.getBytes(), msg.length(), adresseGroupe, port);
+        try {
+            socketGroupe.send(dtg);
+            jTextMsg.setText("");
+            msgNum = 0;
+            jLabelAccount.setText(nomCli);
+        } catch (IOException e) {
+            System.out.println("Erreur :-( : " + e.getMessage());
+        }
     }//GEN-LAST:event_jButtonSendActionPerformed
+
+    private void jListMsgMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jListMsgMouseClicked
+        if(evt.getClickCount() == 2) {
+            String msg = ((JList)evt.getSource()).getSelectedValue().toString();
+
+            msgNum = Integer.parseInt(msg.substring(msg.indexOf("<")+1, msg.indexOf(">"))) * -1;
+            jLabelAccount.setText(nomCli + "  -  " + msgNum * -1);
+        }
+    }//GEN-LAST:event_jListMsgMouseClicked
 
     /**
      * @param args the command line arguments
@@ -141,9 +225,9 @@ public class FApp_IAChat extends javax.swing.JFrame {
     private javax.swing.JButton jButtonLeave;
     private javax.swing.JButton jButtonSend;
     private javax.swing.JLabel jLabelAccount;
+    private javax.swing.JList<String> jListMsg;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTextArea jTextAllMsg;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTextPane jTextMsg;
     // End of variables declaration//GEN-END:variables
 }

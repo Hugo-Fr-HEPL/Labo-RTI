@@ -8,3 +8,4 @@ makefile
 .gitignore
 *.jsp
 *.class
+target

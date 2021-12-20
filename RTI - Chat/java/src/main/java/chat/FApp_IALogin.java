@@ -4,11 +4,18 @@
  */
 package chat;
 
+import java.net.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.io.*; 
+
 /**
  *
  * @author Hugo
  */
 public class FApp_IALogin extends javax.swing.JFrame {
+    public static int LOGIN_GROUP = 1;
 
     /**
      * Creates new form FApp_IALogin
@@ -89,9 +96,13 @@ public class FApp_IALogin extends javax.swing.JFrame {
         String login = jTextLogin.getText();
         String pwd = jTextPwd.getPassword().toString();
         
-        
+
+        // TCP
+
+
         this.setVisible(false);
-        new FApp_IAChat().setVisible(true);
+        new FApp_IAChat(login, "234.5.5.9", 5001).setVisible(true);
+        this.dispose();
     }//GEN-LAST:event_jButtonConnectActionPerformed
 
     /**
