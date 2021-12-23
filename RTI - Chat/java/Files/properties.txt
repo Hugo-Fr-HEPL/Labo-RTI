@@ -1,0 +1,8 @@
+Host=10.59.22.37
+PORT_BAGAGES=51000
+PORT_CHECKIN=52000
+Servers=5
+
+DB_port=3307
+DB=liodrs
+DB_pwd=liodrs
