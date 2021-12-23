@@ -3,17 +3,28 @@
     <head>
         <meta charset="UTF-8"/>
         <title>Indentification science airport</title>
+        
+        <style>
+            body{background-image:url('C:/Users/dries/Documents/école/3eme supérieur/RTI/WebRTI/images/airportterminal.jpg')}
+            body{background-repeat: no-repeat}
+            body{background-size: cover}
+            div{display: flex;}
+            div{flex-direction: column;}
+            div{text-align: center;}
+        </style>
     </head>
     <body>
-        <H3>Bienvenue très cher(e) client(e) !!! </H3>
-        <H5>Veuillez vous identifier ou vous inscrire</H5>
-        <p>
-        <form name="FormulaireIdentification" action="ServletConn" method="POST">
-            <p>Nom: <input type="text" name="nom" size="50" required/></p>
-            <p>Prénom: <input type="text" name="prenom" size="50" required/></p>
-            <p>Mot de passe: <input type="password" name="pwd" size="30" required/></p>
-            <p>S'inscrire: <input type='checkbox' name="inscrip" size="30"/></p>
-            <input type="submit" value="Ok" name="boutonOk" />
-        </form>
+        <div>
+            <H3>Bienvenue très cher(e) client(e) !!! </H3>
+            <H5>Veuillez vous identifier ou vous inscrire</H5>
+            <p>
+            <form name="FormulaireIdentification" action="ServletConn" method="POST">
+                <p>Nom: <input type="text" name="nom" size="50" required/></p>
+                <p>Prénom: <input type="text" name="prenom" size="50" required/></p>
+                <p>Mot de passe: <input type="password" name="pwd" size="30" required/></p>
+                <p>S'inscrire: <input type='checkbox' name="inscrip" size="30"/></p>
+                <input type="submit" value="Ok" name="boutonOk" />
+            </form>
+        </div>
     </body>
 </html>
