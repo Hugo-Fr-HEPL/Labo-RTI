@@ -1,16 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
-	 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	 xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
-	 version="3.1">
+<web-app version="3.1" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd">
     <servlet>
         <servlet-name>ServletConn</servlet-name>
-        <servlet-class>PackageServlet.ServletConn</servlet-class>
+        <servlet-class>PackageControleur.ServletConn</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ServletInit</servlet-name>
+        <servlet-class>PackageControleur.ServletInit</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ServletCaddie</servlet-name>
+        <servlet-class>PackageControleur.ServletCaddie</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ServletPay</servlet-name>
+        <servlet-class>PackageControleur.ServletPay</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ServletValid</servlet-name>
+        <servlet-class>PackageControleur.ServletValid</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>ServletConn</servlet-name>
         <url-pattern>/ServletConn</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ServletInit</servlet-name>
+        <url-pattern>/ServletInit</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ServletCaddie</servlet-name>
+        <url-pattern>/ServletCaddie</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ServletPay</servlet-name>
+        <url-pattern>/ServletPay</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ServletValid</servlet-name>
+        <url-pattern>/ServletValid</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
