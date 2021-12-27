@@ -5,9 +5,7 @@
 package chat;
 
 import java.net.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
 import java.io.*; 
 
 /**
@@ -15,7 +13,12 @@ import java.io.*;
  * @author Hugo
  */
 public class FApp_IALogin extends javax.swing.JFrame {
-    public static int LOGIN_GROUP = 1;
+    public static String LOGIN_GROUP = "1";
+    public static String LOGIN_JAVA = "JAVA";
+
+    DataInputStream dis = null;
+    DataOutputStream dos = null;
+    Socket sock = null;
 
     /**
      * Creates new form FApp_IALogin
@@ -95,15 +98,75 @@ public class FApp_IALogin extends javax.swing.JFrame {
     private void jButtonConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonConnectActionPerformed
         String login = jTextLogin.getText();
         String pwd = jTextPwd.getPassword().toString();
-        
+        String digest = null;
+
 
         // TCP
+        try {
+            Properties prop = new Properties();
+            prop.load(new FileInputStream(GetDirectory.FileDir("properties.txt")));
+
+            int port = Integer.parseInt(prop.getProperty("Port_tcp"));
+            String adresse = (String) prop.get("Host_tcp");
+
+            sock = new Socket(adresse, port);
+            System.out.println(sock.getInetAddress().toString());
+        }
+        catch (UnknownHostException e) { System.err.println("Erreur ! Host non trouvé [" + e + "]"); }
+        catch (IOException e) { System.out.println("--- erreur IO = " + e.getMessage()); }
+
+        // Envoie du message
+        SendMsg(LOGIN_GROUP + "#" + LOGIN_JAVA + "#" + digest + "$");
+
+        // Lecture de la réponse
+        String[] msg = GetMsg();
+
 
 
         this.setVisible(false);
         new FApp_IAChat(login, "234.5.5.9", 5001).setVisible(true);
         this.dispose();
     }//GEN-LAST:event_jButtonConnectActionPerformed
+
+
+    public void SendMsg(String msg) {
+        try {
+            DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
+            dos.writeUTF(msg); dos.flush();
+        } catch (IOException e) {
+            System.err.println("Error network ? [" + e.getMessage() + "]");
+        }
+    }
+
+    public String[] GetMsg() {
+        byte b;
+        String[] msg = new String[10];
+        try {
+            DataInputStream dis = new DataInputStream(sock.getInputStream());
+
+            int i = 0;
+            msg[i] = "";
+            while((b = dis.readByte()) != (byte)'$') {
+                /*
+                if(b != '$' && b != '#')
+                    msg[i] += (char)b;
+                if(b == '#') {
+                    i++;
+                    msg[i] = "";
+                }
+                */
+                if(b == '#') {
+                    i++;
+                    msg[i] = "";
+                }
+                msg[i] += (char)b;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Recu " + msg[0] + " - "+ msg[1]);
+        return msg;
+    }
 
     /**
      * @param args the command line arguments

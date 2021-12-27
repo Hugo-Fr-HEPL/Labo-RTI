@@ -1,7 +1,8 @@
-Host=10.59.22.37
-PORT_BAGAGES=51000
-PORT_CHECKIN=52000
-Servers=5
+Host_tcp=local_host
+Port_tcp=5001
+
+Host_udp=234.5.5.9
+Port_udp=5002
 
 DB_port=3307
 DB=liodrs
