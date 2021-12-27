@@ -22,9 +22,11 @@ public class Serv_IAChat
             e.printStackTrace();
         }
 
-        int port = Integer.parseInt(prop.getProperty("Port_tcp"));
+        int port_tcp = Integer.parseInt(prop.getProperty("Port_tcp"));
+        String host_udp = prop.getProperty("Host_udp");
+        int port_udp = Integer.parseInt(prop.getProperty("Port_udp"));
 
-        ThreadServeur ts = new ThreadServeur(port);
+        ThreadServeur ts = new ThreadServeur(port_tcp, host_udp, port_udp);
         ts.start();
     }
 }

@@ -9,17 +9,20 @@ public class ThreadServeur extends Thread {
     public static String LOGIN_JAVA = "JAVA";
     public static String LOGIN_C = "C";
 
-    int port;
+    int port_tcp;
+    String host_udp;
+    int port_udp;
+
     ServerSocket SSocket = null;
     Socket sock = null;
 
-    public ThreadServeur(int p) {
-        port = p;
+    public ThreadServeur(int p_tcp, String h_udp, int p_udp) {
+        port_tcp = p_tcp; host_udp = h_udp; port_udp = p_udp;
     }
 
     public void run() {
         try {
-            SSocket = new ServerSocket(port);
+            SSocket = new ServerSocket(port_tcp);
         }
         catch (IOException e) { e.printStackTrace(); }
 
@@ -37,7 +40,7 @@ public class ThreadServeur extends Thread {
                     } else if(tmp[1].equals(LOGIN_C)) {
 
                     }
-                    SendMsg("hello#boys$");
+                    SendMsg(host_udp + "#" + port_udp + "$");
                 }
             }
             catch (IOException e) { e.printStackTrace(); }
@@ -66,8 +69,8 @@ public class ThreadServeur extends Thread {
                 if(b == '#') {
                     i++;
                     msg[i] = "";
-                }
-                msg[i] += (char)b;
+                } else
+                    msg[i] += (char)b;
             }
         } catch (IOException e) {
             e.printStackTrace();

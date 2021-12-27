@@ -13,7 +13,7 @@ import java.io.*;
  * @author Hugo
  */
 public class FApp_IALogin extends javax.swing.JFrame {
-    public static String LOGIN_GROUP = "1";
+    public static int LOGIN_GROUP = 1;
     public static String LOGIN_JAVA = "JAVA";
 
     DataInputStream dis = null;
@@ -98,7 +98,7 @@ public class FApp_IALogin extends javax.swing.JFrame {
     private void jButtonConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonConnectActionPerformed
         String login = jTextLogin.getText();
         String pwd = jTextPwd.getPassword().toString();
-        String digest = null;
+        String digest = "tmp";
 
 
         // TCP
@@ -124,7 +124,7 @@ public class FApp_IALogin extends javax.swing.JFrame {
 
 
         this.setVisible(false);
-        new FApp_IAChat(login, "234.5.5.9", 5001).setVisible(true);
+        //new FApp_IAChat(login, "234.5.5.9", 5001).setVisible(true);
         this.dispose();
     }//GEN-LAST:event_jButtonConnectActionPerformed
 
@@ -158,8 +158,8 @@ public class FApp_IALogin extends javax.swing.JFrame {
                 if(b == '#') {
                     i++;
                     msg[i] = "";
-                }
-                msg[i] += (char)b;
+                } else
+                    msg[i] += (char)b;
             }
         } catch (IOException e) {
             e.printStackTrace();
