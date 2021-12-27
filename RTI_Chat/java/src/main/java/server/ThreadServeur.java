@@ -65,6 +65,7 @@ public class ThreadServeur extends Thread {
 
             int i = 0;
             msg[i] = "";
+            b = dis.readByte(); b = dis.readByte();
             while((b = dis.readByte()) != (byte)'$') {
                 if(b == '#') {
                     i++;

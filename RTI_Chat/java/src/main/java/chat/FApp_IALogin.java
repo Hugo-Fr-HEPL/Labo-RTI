@@ -13,7 +13,7 @@ import java.io.*;
  * @author Hugo
  */
 public class FApp_IALogin extends javax.swing.JFrame {
-    public static int LOGIN_GROUP = 1;
+    public static String LOGIN_GROUP = "1";
     public static String LOGIN_JAVA = "JAVA";
 
     DataInputStream dis = null;
@@ -124,7 +124,7 @@ public class FApp_IALogin extends javax.swing.JFrame {
 
 
         this.setVisible(false);
-        //new FApp_IAChat(login, "234.5.5.9", 5001).setVisible(true);
+        new FApp_IAChat(login, msg[0], Integer.pareInt(msg[1])).setVisible(true);
         this.dispose();
     }//GEN-LAST:event_jButtonConnectActionPerformed
 
@@ -146,15 +146,8 @@ public class FApp_IALogin extends javax.swing.JFrame {
 
             int i = 0;
             msg[i] = "";
+            b = dis.readByte(); b = dis.readByte();
             while((b = dis.readByte()) != (byte)'$') {
-                /*
-                if(b != '$' && b != '#')
-                    msg[i] += (char)b;
-                if(b == '#') {
-                    i++;
-                    msg[i] = "";
-                }
-                */
                 if(b == '#') {
                     i++;
                     msg[i] = "";
