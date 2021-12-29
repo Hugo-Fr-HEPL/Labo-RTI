@@ -7,3 +7,5 @@ core
 *.jsp
 *.class
 target
+/RTI_Chat/nbproject/private/
+/RTI_Chat/build/
