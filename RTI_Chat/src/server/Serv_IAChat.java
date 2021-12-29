@@ -14,19 +14,15 @@ public class Serv_IAChat
 {
     public static void main( String[] args )
     {
-        Properties prop = new Properties();
         try {
+            Properties prop = new Properties();
             prop.load(new FileInputStream(GetDirectory.FileDir("properties.txt")));
+            
+            ThreadServeur ts = new ThreadServeur(prop);
+            ts.start();
         }
         catch (IOException e) {
             e.printStackTrace();
         }
-
-        int port_tcp = Integer.parseInt(prop.getProperty("Port_tcp"));
-        String host_udp = prop.getProperty("Host_udp");
-        int port_udp = Integer.parseInt(prop.getProperty("Port_udp"));
-
-        ThreadServeur ts = new ThreadServeur(port_tcp, host_udp, port_udp);
-        ts.start();
     }
 }

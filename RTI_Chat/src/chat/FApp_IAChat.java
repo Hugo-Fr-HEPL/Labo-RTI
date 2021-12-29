@@ -20,6 +20,7 @@ public class FApp_IAChat extends javax.swing.JFrame {
     public static int POST_EVENT = 0;
     public static int EVENT_JOIN = 1;
     public static int EVENT_LEAVE = 2;
+    public static int EVENT_CUSTOM = 3;
 
     static int msgNum = 0;
 
@@ -38,10 +39,12 @@ public class FApp_IAChat extends javax.swing.JFrame {
     public FApp_IAChat() {
         initComponents();
         jListMsg.setModel(new DefaultListModel<String>());
+        setLocationRelativeTo(null);
     }
     public FApp_IAChat(String nom, String add, int po) {
         initComponents();
         jListMsg.setModel(new DefaultListModel<String>());
+        setLocationRelativeTo(null);
         
         try {
             adresseGroupe = InetAddress.getByName(add);
@@ -76,6 +79,7 @@ public class FApp_IAChat extends javax.swing.JFrame {
         jButtonSend = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
         jListMsg = new javax.swing.JList<>();
+        jCheckEvent = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -103,6 +107,13 @@ public class FApp_IAChat extends javax.swing.JFrame {
         });
         jScrollPane3.setViewportView(jListMsg);
 
+        jCheckEvent.setText("Event");
+        jCheckEvent.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckEventActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -117,8 +128,10 @@ public class FApp_IAChat extends javax.swing.JFrame {
                         .addComponent(jButtonLeave))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jScrollPane1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButtonSend)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jButtonSend, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jCheckEvent, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -130,11 +143,14 @@ public class FApp_IAChat extends javax.swing.JFrame {
                     .addComponent(jLabelAccount))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane1)
-                    .addComponent(jButtonSend, javax.swing.GroupLayout.DEFAULT_SIZE, 49, Short.MAX_VALUE))
-                .addContainerGap())
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jCheckEvent)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonSend))
+                    .addComponent(jScrollPane1))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -160,18 +176,22 @@ public class FApp_IAChat extends javax.swing.JFrame {
 
     private void jButtonSendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSendActionPerformed
         String msg = null;
-        if(msgNum == 0)
-            msg = nomCli +" <"+ (Math.round(Math.random() * 98) + 1) +"> "+ jTextMsg.getText();
-        else if (msgNum <= ANSWER_QUESTION)
-            msg = nomCli +" <"+ msgNum +"> "+ jTextMsg.getText();
-
-            System.out.println("tdsfdfsfrete " + msg);
+        if(jCheckEvent.isSelected()) {
+            msg = "<"+ POST_EVENT +">["+ EVENT_CUSTOM +"]{"+ nomCli +"}"+ jTextMsg.getText();
+        } else {
+            if(msgNum == 0)
+                msg = nomCli +" <"+ (Math.round(Math.random() * 98) + 1) +"> "+ jTextMsg.getText();
+            else if (msgNum <= ANSWER_QUESTION)
+                msg = nomCli +" <"+ msgNum +"> "+ jTextMsg.getText();
+        }
+        
         DatagramPacket dtg = new DatagramPacket(msg.getBytes(), msg.length(), adresseGroupe, port);
         try {
             socketGroupe.send(dtg);
             jTextMsg.setText("");
             msgNum = 0;
             jLabelAccount.setText(nomCli);
+            jCheckEvent.setSelected(false);
         } catch (IOException e) {
             System.out.println("Erreur :-( : " + e.getMessage());
         }
@@ -185,6 +205,11 @@ public class FApp_IAChat extends javax.swing.JFrame {
             jLabelAccount.setText(nomCli + "  -  " + msgNum * -1);
         }
     }//GEN-LAST:event_jListMsgMouseClicked
+
+    private void jCheckEventActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckEventActionPerformed
+        msgNum = 0;
+        jLabelAccount.setText(nomCli);
+    }//GEN-LAST:event_jCheckEventActionPerformed
 
     /**
      * @param args the command line arguments
@@ -217,6 +242,7 @@ public class FApp_IAChat extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new FApp_IAChat().setVisible(true);
+                
             }
         });
     }
@@ -224,6 +250,7 @@ public class FApp_IAChat extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonLeave;
     private javax.swing.JButton jButtonSend;
+    private javax.swing.JCheckBox jCheckEvent;
     private javax.swing.JLabel jLabelAccount;
     private javax.swing.JList<String> jListMsg;
     private javax.swing.JScrollPane jScrollPane1;

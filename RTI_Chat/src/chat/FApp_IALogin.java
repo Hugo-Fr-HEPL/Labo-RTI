@@ -16,6 +16,9 @@ import java.security.*;
 public class FApp_IALogin extends javax.swing.JFrame {
     public static String LOGIN_GROUP = "1";
     public static String LOGIN_JAVA = "JAVA";
+    
+    public static String ERROR_LOG = "LOGIN";
+    public static String ERROR_PWD = "PASSWORD";
 
     DataInputStream dis = null;
     DataOutputStream dos = null;
@@ -26,6 +29,7 @@ public class FApp_IALogin extends javax.swing.JFrame {
      */
     public FApp_IALogin() {
         initComponents();
+        setLocationRelativeTo(null);
     }
 
     /**
@@ -37,16 +41,22 @@ public class FApp_IALogin extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jLabel2 = new javax.swing.JLabel();
         jTextPwd = new javax.swing.JPasswordField();
         jTextLogin = new javax.swing.JTextField();
         jButtonConnect = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
+        jLabelError = new javax.swing.JLabel();
+
+        jLabel2.setText("dfgdgfdg");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jTextPwd.setToolTipText("Password");
 
+        jTextLogin.setHorizontalAlignment(javax.swing.JTextField.LEFT);
         jTextLogin.setToolTipText("Name");
+        jTextLogin.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
 
         jButtonConnect.setText("Connect");
         jButtonConnect.setMaximumSize(new java.awt.Dimension(80, 25));
@@ -58,7 +68,10 @@ public class FApp_IALogin extends javax.swing.JFrame {
             }
         });
 
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Login to the chat");
+
+        jLabelError.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -68,22 +81,27 @@ public class FApp_IALogin extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(100, 100, 100)
+                        .addComponent(jTextPwd, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jTextLogin)
-                            .addComponent(jTextPwd, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(135, 135, 135)
-                        .addComponent(jButtonConnect, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(124, 124, 124)
-                        .addComponent(jLabel1)))
+                            .addComponent(jLabelError, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE))))
                 .addContainerGap(100, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jButtonConnect, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(133, 133, 133))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
+            .addGroup(layout.createSequentialGroup()
+                .addGap(6, 6, 6)
                 .addComponent(jLabel1)
+                .addGap(2, 2, 2)
+                .addComponent(jLabelError, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jTextLogin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
@@ -118,8 +136,8 @@ public class FApp_IALogin extends javax.swing.JFrame {
 
         // Digest
         if(!pwd.equals("")) {
-            byte[] digestPwd = {};
             double rand = 0;
+            byte[] digestPwd = {};
             try {
                 MessageDigest md = MessageDigest.getInstance("SHA-1", "BC");
 
@@ -135,20 +153,25 @@ public class FApp_IALogin extends javax.swing.JFrame {
             catch (NoSuchProviderException e) { System.out.println("--- erreur No Such Provider = " + e.getMessage()); }
             catch (IOException e) { System.out.println("--- erreur IO = " + e.getMessage()); }
 
-            System.out.println("tes "+ digestPwd + " - " + pwd);
-
             // Envoie du message
-            SendMsg(LOGIN_GROUP + "#" + LOGIN_JAVA + "#" + login + "#" + rand + "#" + digestPwd + "$");
-        } else
-            SendMsg(LOGIN_GROUP + "#" + LOGIN_JAVA + "#" + login + "$");
-
+            SendMsg(LOGIN_GROUP +"#"+ LOGIN_JAVA +"#"+ login +"#"+ rand +"#"+ digestPwd.length +"$");
+            if(GetMsg()[0].equals("OK"));
+                SendMsgBytes(digestPwd);
+        } else {
+            SendMsg(LOGIN_GROUP +"#"+ LOGIN_JAVA +"#"+ login +"$");
+        }
         // Lecture de la réponse
         String[] msg = GetMsg();
 
-
-        this.setVisible(false);
-        new FApp_IAChat(login, msg[0], Integer.parseInt(msg[1])).setVisible(true);
-        this.dispose();
+        if(msg[0].equals(ERROR_LOG))
+            jLabelError.setText("Unknown Login");
+        else if(msg[0].equals(ERROR_PWD))
+            jLabelError.setText("Wrong Password");
+        else {
+            this.setVisible(false);
+            new FApp_IAChat(msg[2], msg[0], Integer.parseInt(msg[1])).setVisible(true);
+            this.dispose();
+        }
     }//GEN-LAST:event_jButtonConnectActionPerformed
 
 
@@ -156,9 +179,15 @@ public class FApp_IALogin extends javax.swing.JFrame {
         try {
             DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
             dos.writeUTF(msg); dos.flush();
-        } catch (IOException e) {
-            System.err.println("Error network ? [" + e.getMessage() + "]");
         }
+        catch (IOException e) { System.err.println("Error network ? [" + e.getMessage() + "]"); }
+    }
+    public void SendMsgBytes(byte[] msg) {
+        try {
+            DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
+            dos.write(msg); dos.flush();
+        }
+        catch (IOException e) { System.err.println("Error network ? [" + e.getMessage() + "]"); }
     }
 
     public String[] GetMsg() {
@@ -177,9 +206,8 @@ public class FApp_IALogin extends javax.swing.JFrame {
                 } else
                     msg[i] += (char)b;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+        catch (IOException e) { e.printStackTrace(); }
         System.out.println("Recu " + msg[0] + " - "+ msg[1]);
         return msg;
     }
@@ -222,6 +250,8 @@ public class FApp_IALogin extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonConnect;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabelError;
     private javax.swing.JTextField jTextLogin;
     private javax.swing.JPasswordField jTextPwd;
     // End of variables declaration//GEN-END:variables

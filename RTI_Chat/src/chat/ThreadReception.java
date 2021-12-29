@@ -4,6 +4,7 @@ import java.net.*;
 import java.io.*;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 
 
 public class ThreadReception extends Thread
@@ -38,20 +39,24 @@ public class ThreadReception extends Thread
                 if(num == POST_EVENT)
                     numPlus = Integer.parseInt(msg.substring(msg.indexOf("[")+1, msg.indexOf("]")));
 
+                String msgFinal = null;
                 if(num == POST_EVENT) {
                     if(numPlus == EVENT_JOIN) {
-                        msg = msg.substring(msg.indexOf("{")+1, msg.indexOf("}")) + " a rejoint le groupe";
+                        msgFinal = msg.substring(msg.indexOf("{")+1, msg.indexOf("}")) + " a rejoint le groupe";
                     } else if (numPlus == EVENT_LEAVE) {
-                        msg = msg.substring(msg.indexOf("{")+1, msg.indexOf("}")) + " a quitte le groupe";
+                        msgFinal = msg.substring(msg.indexOf("{")+1, msg.indexOf("}")) + " a quitte le groupe";
+                    } else {
+                        msgFinal = msg.substring(msg.indexOf("{")+1, msg.indexOf("}")) +"'s event: "+ msg.substring(msg.indexOf("}")+1);
+                        JOptionPane.showMessageDialog(null, msg.substring(msg.indexOf("{")+1, msg.indexOf("}")) +": "+ msg.substring(msg.indexOf("}")+1), "Event", JOptionPane.INFORMATION_MESSAGE);
                     }
                 } else {
                     if(num >= POST_QUESTION) {
-                        msg = msg + " ?";
+                        msgFinal = msg + " ?";
                     } else if(num <= ANSWER_QUESTION) {
-                        msg = "    <"+ num * -1 + msg.substring(msg.indexOf(">")) + " !";
+                        msgFinal = "    <"+ num * -1 + msg.substring(msg.indexOf(">")) + " !";
                     }
                 }
-                model.addElement(msg);
+                model.addElement(msgFinal);
             }
             catch (IOException e) {
                 System.out.println("Erreur dans le thread :-( :" + e.getMessage());

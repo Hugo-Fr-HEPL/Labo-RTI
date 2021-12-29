@@ -2,22 +2,36 @@ package server;
 
 import java.io.*;
 import java.net.*;
+import java.security.*;
+import java.sql.*;
+import java.util.*;
 
 
 public class ThreadServeur extends Thread {
     public static String LOGIN_GROUP = "1";
     public static String LOGIN_JAVA = "JAVA";
     public static String LOGIN_C = "C";
+    
+    public static String ERROR_LOG = "LOGIN";
+    public static String ERROR_PWD = "PASSWORD";
+    public static String ERROR = "ERROR";
 
+    Properties prop;
     int port_tcp;
     String host_udp;
     int port_udp;
 
     ServerSocket SSocket = null;
     Socket sock = null;
+    
+    int digestLength = 0;
 
-    public ThreadServeur(int p_tcp, String h_udp, int p_udp) {
-        port_tcp = p_tcp; host_udp = h_udp; port_udp = p_udp;
+    public ThreadServeur(Properties p) {
+        prop = p;
+        
+        port_tcp = Integer.parseInt(prop.getProperty("Port_tcp"));
+        host_udp = prop.getProperty("Host_udp");
+        port_udp = Integer.parseInt(prop.getProperty("Port_udp"));
     }
 
     public void run() {
@@ -36,67 +50,74 @@ public class ThreadServeur extends Thread {
 
                 if(tmp[0].equals(LOGIN_GROUP)) {
                     if(tmp[1].equals(LOGIN_JAVA)) {
-                        if(tmp[3] == null) {
-                            System.out.println("client " + tmp[2] + " - " + tmp[3] + " - " + tmp[4]);
-                        } else {
-                            System.out.println("agent " + tmp[2] + " - " + tmp[3] + " - " + tmp[4]);
+                        if(tmp[3] == null) { // client
+                            /*
+                            try {
+                                MySQL.MySQL_Connexion("bd_airport", prop.getProperty("DB_port"), "localhost", prop.getProperty("DB"), prop.getProperty("DB_pwd"));
+                                ResultSet rs = MySQL.MySQL_Request("SELECT nomClient FROM clients JOIN billets USING idClient WHERE idBillet = \""+ tmp[2] +"\"");
+                                
+                                if(rs.next()) { // If there is at least 1 result
+                                    SendMsg(host_udp +"#"+ port_udp +"#"+ rs.getString(1) +"$");
+                                } else {
+                                    SendMsg(ERROR_LOG +"$");
+                                }
+                            }
+                            catch (SQLException ex) { System.err.println("SQL Exception ? [" + ex.getMessage() + "]"); }
+                            */
+                        } else { // agent
+                            digestLength = Integer.parseInt(tmp[4]);
+                            SendMsg("OK$");
+                            byte[] pwdSent = GetMsgByte();
+                            /*
+                            try {
+                                MySQL.MySQL_Connexion("bd_airport", prop.getProperty("DB_port"), "localhost", prop.getProperty("DB"), prop.getProperty("DB_pwd"));
+                                ResultSet rs = MySQL.MySQL_Request("SELECT nom, motDePasse FROM agents WHERE nom = \""+ tmp[2] +"\"");
+                                //ResultSet rs = MySQL.MySQL_Request("SELECT nom, motDePasse FROM agents WHERE fonction = \"tour-operateur\"");
+                                
+                                if(rs.next()) {
+                                    String pwd = rs.getString(2);
+                                */
+                                    String pwd = "oui";
+
+                                    byte[] digestPwd = {};
+                                    try {
+                                        MessageDigest md = MessageDigest.getInstance("SHA-1", "BC");
+
+                                        md.update(pwd.getBytes());
+                                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                        DataOutputStream bdos = new DataOutputStream(baos);
+                                        bdos.writeDouble(Double.parseDouble(tmp[3]));
+                                        md.update(baos.toByteArray());
+                                        digestPwd = md.digest();
+                                    }
+                                    catch (NoSuchAlgorithmException e) { System.out.println("--- erreur No Such Algorithm = " + e.getMessage()); }
+                                    catch (NoSuchProviderException e) { System.out.println("--- erreur No Such Provider = " + e.getMessage()); }
+                                    catch (IOException e) { System.out.println("--- erreur IO = " + e.getMessage()); }
+                                    if(MessageDigest.isEqual(digestPwd, pwdSent))
+                                        SendMsg(host_udp +"#"+ port_udp +"#"+ tmp[2] +"$");
+                                    else
+                                        SendMsg(ERROR_PWD +"$");
+                                /*
+                                } else {
+                                    SendMsg(ERROR_LOG +"$");
+                                }
+                            }
+                            catch (SQLException ex) { System.err.println("SQL Exception ? [" + ex.getMessage() + "]"); }
+                            */
                         }
-                        /*
+                    } else if(tmp[1].equals(LOGIN_C)) {
                         try {
                             MySQL.MySQL_Connexion("bd_airport", prop.getProperty("DB_port"), "localhost", prop.getProperty("DB"), prop.getProperty("DB_pwd"));
-                            ResultSet rs = MySQL.MySQL_Request("SELECT nom, motDePasse FROM agents where fonction = \"tour-operateur\"");
-                            
-                            while(rs.next())
-                                HTConnection.put(rs.getString(1), rs.getString(2));
-                            
-                            
-                            String nom = GetUser();
-                            byte[] mdp = GetPassword();
-                            int taille = size;
-                            double alea = rand;
-                
-                            String m = HTConnection.get(nom);
-                            
-                            double rand=0;
-                            byte[] msgD={};
-                            if(m!=null)
-                            {
-                                try {
-                                    MessageDigest md = MessageDigest.getInstance("SHA-1", "BC");
-                
-                                    md.update(m.getBytes());
-                                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                    DataOutputStream bdos = new DataOutputStream(baos);
-                                    bdos.writeDouble(alea);
-                                    md.update(baos.toByteArray());
-                                    msgD = md.digest();
-                                } catch (NoSuchAlgorithmException ex) {
-                                    System.err.println("No Such Algorithm ? [" + ex.getMessage() + "]");
-                                    //Logger.getLogger(Application_Billets.class.getName()).log(Level.SEVERE, null, ex);
-                                } catch (NoSuchProviderException ex) {
-                                    System.err.println("No Such Provider ? [" + ex.getMessage() + "]");
-                                    //Logger.getLogger(Application_Billets.class.getName()).log(Level.SEVERE, null, ex);
-                                } catch (IOException ex) {
-                                    System.err.println("IO Exception ? [" + ex.getMessage() + "]");
-                                    //Logger.getLogger(Application_Billets.class.getName()).log(Level.SEVERE, null, ex);
-                                }
-                                
-                                if(MessageDigest.isEqual(msgD, mdp))
-                                {
-                                    reussite="connection ok";
-                                }
-                                else
-                                    reussite="connection échouée";
+                            ResultSet rs = MySQL.MySQL_Request("SELECT nom, motDePasse FROM agents WHERE nom = \""+ tmp[2] +"\" AND motDePasse = \""+ tmp[3] +"\"");
+
+                            if(rs.next()) {
+                                SendMsg(host_udp +"#"+ port_udp +"#"+ tmp[2] +"$");
+                            } else {
+                                SendMsg(ERROR +"$");
                             }
-                            else
-                                reussite="connection échouée";
                         }
                         catch (SQLException ex) { System.err.println("SQL Exception ? [" + ex.getMessage() + "]"); }
-                        */
-                    } else if(tmp[1].equals(LOGIN_C)) {
-
                     }
-                    SendMsg(host_udp + "#" + port_udp + "$");
                 }
             }
             catch (IOException e) { e.printStackTrace(); }
@@ -108,9 +129,8 @@ public class ThreadServeur extends Thread {
         try {
             DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
             dos.writeUTF(msg); dos.flush();
-        } catch (IOException e) {
-            System.err.println("Error network ? [" + e.getMessage() + "]");
         }
+        catch (IOException e) { System.err.println("Error network ? [" + e.getMessage() + "]"); }
     }
 
     public String[] GetMsg() {
@@ -129,95 +149,24 @@ public class ThreadServeur extends Thread {
                 } else
                     msg[i] += (char)b;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+        catch (IOException e) { e.printStackTrace(); }
         System.out.println("Recu " + msg[0] + " - "+ msg[1]);
         return msg;
+    } 
+    public byte[] GetMsgByte() {
+        byte[] msg = {};
+        try {
+            DataInputStream dis = new DataInputStream(sock.getInputStream());
+            msg = dis.readNBytes(digestLength);
+        }
+        catch (IOException e) { e.printStackTrace(); }
+        /*
+        System.out.println("Get ");
+        for(int i = 0; i < msg.length; i++)
+            System.out.print(msg[i]);
+        System.out.println(" ");
+        */
+        return msg;
     }
-
-/*
-    private void traiteConnexion()
-    {
-        System.out.println("traiteConnexion");
-        String reussite=null;
-        
-        Properties prop = new Properties();
-        try {
-            prop.load(new FileInputStream(GetDirectory.FileDir("properties.txt")));
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        
-        try {
-            MySQL.MySQL_Connexion("bd_airport", prop.getProperty("DB_port"), "localhost", prop.getProperty("DB"), prop.getProperty("DB_pwd"));
-            ResultSet rs = MySQL.MySQL_Request("select nom, motDePasse from agents where fonction = \"tour-operateur\"");
-            
-            while(rs.next())
-            {
-                HTConnection.put(rs.getString(1), rs.getString(2));
-            }
-            
-            
-            String nom = GetUser();
-            byte[] mdp = GetPassword();
-            int taille = size;
-            double alea = rand;
-
-            String m = HTConnection.get(nom);
-            
-            double rand=0;
-            byte[] msgD={};
-            if(m!=null)
-            {
-                try {
-                    MessageDigest md = MessageDigest.getInstance("SHA-1", "BC");
-
-                    md.update(m.getBytes());
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    DataOutputStream bdos = new DataOutputStream(baos);
-                    bdos.writeDouble(alea);
-                    md.update(baos.toByteArray());
-                    msgD = md.digest();
-                } catch (NoSuchAlgorithmException ex) {
-                    System.err.println("No Such Algorithm ? [" + ex.getMessage() + "]");
-                    //Logger.getLogger(Application_Billets.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (NoSuchProviderException ex) {
-                    System.err.println("No Such Provider ? [" + ex.getMessage() + "]");
-                    //Logger.getLogger(Application_Billets.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IOException ex) {
-                    System.err.println("IO Exception ? [" + ex.getMessage() + "]");
-                    //Logger.getLogger(Application_Billets.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                
-                if(MessageDigest.isEqual(msgD, mdp))
-                {
-                    reussite="connection ok";
-                    
-                    CryptageAS CAS = new CryptageAS();
-                    CAS.GenerateASKey();
-                }
-                else
-                    reussite="connection échouée";
-            }
-            else
-                reussite="connection échouée";
-            
-        } catch (SQLException ex) {
-            System.err.println("SQL Exception ? [" + ex.getMessage() + "]");
-            //Logger.getLogger(RequeteSUM.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        //ReponseSUM rep = new ReponseSUM(ReponseSUM.CONNECTION, reussite);
-        try {
-            DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
-            dos.writeChars("tmp"); dos.flush();
-            dos.close();
-        }
-        catch (IOException e) {
-            System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
-        }
-    }
-*/
 }
