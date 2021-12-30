@@ -4,6 +4,6 @@ Port_tcp=5001
 Host_udp=234.5.5.9
 Port_udp=5002
 
-DB_port=3307
-DB=hugo
-DB_pwd=hugo
+DB_port=3306
+DB=root
+DB_pwd=123456

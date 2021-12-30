@@ -51,10 +51,9 @@ public class ThreadServeur extends Thread {
                 if(tmp[0].equals(LOGIN_GROUP)) {
                     if(tmp[1].equals(LOGIN_JAVA)) {
                         if(tmp[3] == null) { // client
-                            /*
                             try {
                                 MySQL.MySQL_Connexion("bd_airport", prop.getProperty("DB_port"), "localhost", prop.getProperty("DB"), prop.getProperty("DB_pwd"));
-                                ResultSet rs = MySQL.MySQL_Request("SELECT nomClient FROM clients JOIN billets USING idClient WHERE idBillet = \""+ tmp[2] +"\"");
+                                ResultSet rs = MySQL.MySQL_Request("SELECT nomClient FROM clients JOIN billets USING (idClient) WHERE idBillet = "+ tmp[2]);
                                 
                                 if(rs.next()) { // If there is at least 1 result
                                     SendMsg(host_udp +"#"+ port_udp +"#"+ rs.getString(1) +"$");
@@ -63,21 +62,16 @@ public class ThreadServeur extends Thread {
                                 }
                             }
                             catch (SQLException ex) { System.err.println("SQL Exception ? [" + ex.getMessage() + "]"); }
-                            */
                         } else { // agent
                             digestLength = Integer.parseInt(tmp[4]);
                             SendMsg("OK$");
                             byte[] pwdSent = GetMsgByte();
-                            /*
                             try {
                                 MySQL.MySQL_Connexion("bd_airport", prop.getProperty("DB_port"), "localhost", prop.getProperty("DB"), prop.getProperty("DB_pwd"));
                                 ResultSet rs = MySQL.MySQL_Request("SELECT nom, motDePasse FROM agents WHERE nom = \""+ tmp[2] +"\"");
-                                //ResultSet rs = MySQL.MySQL_Request("SELECT nom, motDePasse FROM agents WHERE fonction = \"tour-operateur\"");
                                 
                                 if(rs.next()) {
                                     String pwd = rs.getString(2);
-                                */
-                                    String pwd = "oui";
 
                                     byte[] digestPwd = {};
                                     try {
@@ -97,13 +91,11 @@ public class ThreadServeur extends Thread {
                                         SendMsg(host_udp +"#"+ port_udp +"#"+ tmp[2] +"$");
                                     else
                                         SendMsg(ERROR_PWD +"$");
-                                /*
                                 } else {
                                     SendMsg(ERROR_LOG +"$");
                                 }
                             }
                             catch (SQLException ex) { System.err.println("SQL Exception ? [" + ex.getMessage() + "]"); }
-                            */
                         }
                     } else if(tmp[1].equals(LOGIN_C)) {
                         try {

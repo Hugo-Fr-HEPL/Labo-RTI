@@ -42,9 +42,9 @@ public class ThreadReception extends Thread
                 String msgFinal = null;
                 if(num == POST_EVENT) {
                     if(numPlus == EVENT_JOIN) {
-                        msgFinal = msg.substring(msg.indexOf("{")+1, msg.indexOf("}")) + " a rejoint le groupe";
+                        msgFinal = msg.substring(msg.indexOf("{")+1, msg.indexOf("}")) + " joined the group";
                     } else if (numPlus == EVENT_LEAVE) {
-                        msgFinal = msg.substring(msg.indexOf("{")+1, msg.indexOf("}")) + " a quitte le groupe";
+                        msgFinal = msg.substring(msg.indexOf("{")+1, msg.indexOf("}")) + " left the group";
                     } else {
                         msgFinal = msg.substring(msg.indexOf("{")+1, msg.indexOf("}")) +"'s event: "+ msg.substring(msg.indexOf("}")+1);
                         JOptionPane.showMessageDialog(null, msg.substring(msg.indexOf("{")+1, msg.indexOf("}")) +": "+ msg.substring(msg.indexOf("}")+1), "Event", JOptionPane.INFORMATION_MESSAGE);

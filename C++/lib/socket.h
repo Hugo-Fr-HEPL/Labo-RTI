@@ -14,6 +14,7 @@ using namespace std;
 #include <netdb.h>
 #include <errno.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <arpa/inet.h>
 
 #define MAXSTRING 100

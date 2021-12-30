@@ -41,12 +41,8 @@ public class MySQL {
         try {
             if(type.equals("SELECT"))
                 rs = instruc.executeQuery(req);
-            else
-            {
-                if(type.equals("UPDATE"))
-                    instruc.executeUpdate(req);
-                    
-            }
+            else if(type.equals("UPDATE") || type.equals("DELETE") || type.equals("INSERT"))
+                instruc.executeUpdate(req);
                 
         } catch (SQLException ex) {
             System.out.println("Erreur lors de l'exécution de la requête: " + ex);

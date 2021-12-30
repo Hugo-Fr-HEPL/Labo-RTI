@@ -118,59 +118,62 @@ public class FApp_IALogin extends javax.swing.JFrame {
         String login = jTextLogin.getText();
         String pwd = jTextPwd.getText();
 
-
-        // TCP
-        try {
-            Properties prop = new Properties();
-            prop.load(new FileInputStream(GetDirectory.FileDir("properties.txt")));
-
-            int port = Integer.parseInt(prop.getProperty("Port_tcp"));
-            String adresse = (String) prop.get("Host_tcp");
-
-            sock = new Socket(adresse, port);
-            System.out.println(sock.getInetAddress().toString());
-        }
-        catch (UnknownHostException e) { System.err.println("Erreur ! Host non trouvé [" + e + "]"); }
-        catch (IOException e) { System.out.println("--- erreur IO = " + e.getMessage()); }
-
-
-        // Digest
-        if(!pwd.equals("")) {
-            double rand = 0;
-            byte[] digestPwd = {};
+        if(login.equals(""))
+            jLabelError.setText("No Login");
+        else {
+            // TCP
             try {
-                MessageDigest md = MessageDigest.getInstance("SHA-1", "BC");
+                Properties prop = new Properties();
+                prop.load(new FileInputStream(GetDirectory.FileDir("properties.txt")));
 
-                rand = Math.random();
-                md.update(pwd.getBytes());
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                DataOutputStream bdos = new DataOutputStream(baos);
-                bdos.writeDouble(rand);
-                md.update(baos.toByteArray());
-                digestPwd = md.digest();
+                int port = Integer.parseInt(prop.getProperty("Port_tcp"));
+                String adresse = (String) prop.get("Host_tcp");
+
+                sock = new Socket(adresse, port);
+                System.out.println(sock.getInetAddress().toString());
             }
-            catch (NoSuchAlgorithmException e) { System.out.println("--- erreur No Such Algorithm = " + e.getMessage()); }
-            catch (NoSuchProviderException e) { System.out.println("--- erreur No Such Provider = " + e.getMessage()); }
+            catch (UnknownHostException e) { System.err.println("Erreur ! Host non trouvé [" + e + "]"); }
             catch (IOException e) { System.out.println("--- erreur IO = " + e.getMessage()); }
 
-            // Envoie du message
-            SendMsg(LOGIN_GROUP +"#"+ LOGIN_JAVA +"#"+ login +"#"+ rand +"#"+ digestPwd.length +"$");
-            if(GetMsg()[0].equals("OK"));
-                SendMsgBytes(digestPwd);
-        } else {
-            SendMsg(LOGIN_GROUP +"#"+ LOGIN_JAVA +"#"+ login +"$");
-        }
-        // Lecture de la réponse
-        String[] msg = GetMsg();
 
-        if(msg[0].equals(ERROR_LOG))
-            jLabelError.setText("Unknown Login");
-        else if(msg[0].equals(ERROR_PWD))
-            jLabelError.setText("Wrong Password");
-        else {
-            this.setVisible(false);
-            new FApp_IAChat(msg[2], msg[0], Integer.parseInt(msg[1])).setVisible(true);
-            this.dispose();
+            // Digest
+            if(!pwd.equals("")) {
+                double rand = 0;
+                byte[] digestPwd = {};
+                try {
+                    MessageDigest md = MessageDigest.getInstance("SHA-1", "BC");
+
+                    rand = Math.random();
+                    md.update(pwd.getBytes());
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    DataOutputStream bdos = new DataOutputStream(baos);
+                    bdos.writeDouble(rand);
+                    md.update(baos.toByteArray());
+                    digestPwd = md.digest();
+                }
+                catch (NoSuchAlgorithmException e) { System.out.println("--- erreur No Such Algorithm = " + e.getMessage()); }
+                catch (NoSuchProviderException e) { System.out.println("--- erreur No Such Provider = " + e.getMessage()); }
+                catch (IOException e) { System.out.println("--- erreur IO = " + e.getMessage()); }
+
+                // Envoie du message
+                SendMsg(LOGIN_GROUP +"#"+ LOGIN_JAVA +"#"+ login +"#"+ rand +"#"+ digestPwd.length +"$");
+                if(GetMsg()[0].equals("OK"));
+                    SendMsgBytes(digestPwd);
+            } else {
+                SendMsg(LOGIN_GROUP +"#"+ LOGIN_JAVA +"#"+ login +"$");
+            }
+            // Lecture de la réponse
+            String[] msg = GetMsg();
+
+            if(msg[0].equals(ERROR_LOG))
+                jLabelError.setText("Unknown Login");
+            else if(msg[0].equals(ERROR_PWD))
+                jLabelError.setText("Wrong Password");
+            else {
+                this.setVisible(false);
+                new FApp_IAChat(msg[2], msg[0], Integer.parseInt(msg[1])).setVisible(true);
+                this.dispose();
+            }
         }
     }//GEN-LAST:event_jButtonConnectActionPerformed
 
