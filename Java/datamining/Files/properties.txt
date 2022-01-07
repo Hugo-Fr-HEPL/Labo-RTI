@@ -1,10 +1,9 @@
 Host_tcp=192.168.1.98
-Port_tcp=5001
-Servers=1
+Port=5001
 
 Host_udp=234.5.5.9
 Port_udp=5002
 
 DB_port=3306
-DB=hugo
-DB_pwd=hugo
+DB=root
+DB_pwd=123456

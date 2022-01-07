@@ -17,15 +17,31 @@ using namespace std;
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 
+#include "socketClient.h"
 
-#define PORT 5000
-#define MAXSTRING 100
 
-#define DOC "DENY_OF_CONNEXION"
-#define EOC "END_OF_CONNEXION"
+#define LOGIN_GROUP "1"
+#define LOGIN_C "C"
+#define ERROR "ERROR"
 
-#define LOGIN_GROUP = "1"
-#define LOGIN_C = "C"
-#define ERROR = "ERROR"
+/*
+void MainLoop();
+*/
+void Login();
+
+void CloseConnection();
+
+
+typedef struct AppCheck {
+    int hSock;
+    char msgCli[MAXSTRING], msgServ[MAXSTRING];
+    char *ticket = NULL;
+    int accomp, lug;
+    int supp;
+}AppCheck;
+
+
+SocketClient sock;
+AppCheck cli;
 
 #endif

@@ -196,6 +196,7 @@ public class FApp_IALogin extends javax.swing.JFrame {
     public String[] GetMsg() {
         byte b;
         String[] msg = new String[10];
+        String tmp = "";
         try {
             DataInputStream dis = new DataInputStream(sock.getInputStream());
 
@@ -203,6 +204,7 @@ public class FApp_IALogin extends javax.swing.JFrame {
             msg[i] = "";
             b = dis.readByte(); b = dis.readByte();
             while((b = dis.readByte()) != (byte)'$') {
+                tmp += (char)b;
                 if(b == '#') {
                     i++;
                     msg[i] = "";
@@ -211,7 +213,7 @@ public class FApp_IALogin extends javax.swing.JFrame {
             }
         }
         catch (IOException e) { e.printStackTrace(); }
-        System.out.println("Recu " + msg[0] + " - "+ msg[1]);
+        System.out.println("Recu " + tmp);
         return msg;
     }
 

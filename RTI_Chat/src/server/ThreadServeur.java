@@ -128,6 +128,7 @@ public class ThreadServeur extends Thread {
     public String[] GetMsg() {
         byte b;
         String[] msg = new String[10];
+        String tmp = "";
         try {
             DataInputStream dis = new DataInputStream(sock.getInputStream());
 
@@ -135,6 +136,7 @@ public class ThreadServeur extends Thread {
             msg[i] = "";
             b = dis.readByte(); b = dis.readByte();
             while((b = dis.readByte()) != (byte)'$') {
+                tmp += (char)b;
                 if(b == '#') {
                     i++;
                     msg[i] = "";
@@ -143,7 +145,7 @@ public class ThreadServeur extends Thread {
             }
         }
         catch (IOException e) { e.printStackTrace(); }
-        System.out.println("Recu " + msg[0] + " - "+ msg[1]);
+        System.out.println("Recu " + tmp);
         return msg;
     } 
     public byte[] GetMsgByte() {

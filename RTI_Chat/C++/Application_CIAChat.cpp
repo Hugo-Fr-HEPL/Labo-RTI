@@ -13,17 +13,15 @@ int main() {
 	sock.Connect_Client(cli.hSock, (struct sockaddr*)&adresse);
 
 
-// Vérification si assez de place
+	Login();
+
+
+// Récupération de l'adresse et du port UDP
 	if(sock.Receive_Message(cli.hSock, msgServeur, 0) == EXIT_FAILURE)
 		CloseConnection();
 
-	if(strcmp(msgServeur, NO_CO) == 0) {
-		cout << "Plus de connexions disponibles.." << endl;
-		CloseConnection();
-	}
-
-
-	MainLoop();
+cout << "test " << msgServeur << endl;
+	//MainLoop();
 
 
 	CloseConnection();
@@ -34,24 +32,38 @@ int main() {
 	Envoie ses infos de connexion au serveur
 	return EXIT_SUCCESS on success
 */
-bool Login() {
-	char msgClient[MAXSTRING] = "", msgServeur[MAXSTRING];
+void Login() {
+	char msgClient[MAXSTRING] = "  ";
+	char login[30] = "Blair", password[30] = "mdpBlair";
+
+/*
 	char login[30], password[30];
-
-
 	cout << "Encodez votre login : ";
 	cin >> login;
 	cout << "Encodez votre mot de passe : ";
 	cin >> password;
+*/
 
+// Message for the server to know it's a C application
+	strcat(msgClient, LOGIN_GROUP);
+	strcat(msgClient, "#");
+	strcat(msgClient, LOGIN_C);
+	strcat(msgClient, "#");
 	strcat(msgClient, login);
-	strcat(msgClient, ";");
+	strcat(msgClient, "#");
 	strcat(msgClient, password);
-	strcat(msgClient, "\0");
+	strcat(msgClient, "$");
+
 
 	sock.Send_Message(cli.hSock, msgClient, 0);
-	if(sock.Receive_Message(cli.hSock, msgServeur, 0) == EXIT_FAILURE)
-		CloseConnection();
+}
 
-	return ShowMessage(msgServeur);
+
+/*
+	Ferme tout proprement
+*/
+void CloseConnection() {
+	close(cli.hSock);
+    printf("Socket client ferme\n");
+	exit(EXIT_FAILURE);
 }
