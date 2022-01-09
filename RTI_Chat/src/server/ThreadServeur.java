@@ -120,7 +120,8 @@ public class ThreadServeur extends Thread {
     public void SendMsg(String msg) {
         try {
             DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
-            dos.writeUTF(msg); dos.flush();
+            dos.write(msg.getBytes()); dos.flush();
+            System.out.println("Envoi " + msg);
         }
         catch (IOException e) { System.err.println("Error network ? [" + e.getMessage() + "]"); }
     }
@@ -134,7 +135,6 @@ public class ThreadServeur extends Thread {
 
             int i = 0;
             msg[i] = "";
-            b = dis.readByte(); b = dis.readByte();
             while((b = dis.readByte()) != (byte)'$') {
                 tmp += (char)b;
                 if(b == '#') {

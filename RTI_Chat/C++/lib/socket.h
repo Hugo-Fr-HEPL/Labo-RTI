@@ -31,8 +31,10 @@ using namespace std;
 
 
 typedef struct properties {
-	char* machine = NULL;
-	int port;
+	char* address_tcp = NULL;
+	int port_tcp;
+	char* address_udp = NULL;
+	int port_udp;
 	int nbServer;
 } properties;
 
@@ -43,9 +45,11 @@ class Socket {
 	public:
 		int Create_Socket(int domain, int type, int protocol);
 		sockaddr_in Infos_Host(properties prop);
+		sockaddr_in Infos_Host(char* add, char* port);
 
 		void Send_Message(int hSocketCible, const void* message, int flagUrg);
 		bool Receive_Message(int hSocketSource, void* message, int flagUrgdest);
+		char* Sub_Msg(char* ret, char* msg, char sep, char end, int num);
 
 		properties Load_Properties(const char* fileName);
 		char* Read_Line(int line, char* txt);

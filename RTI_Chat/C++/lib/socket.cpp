@@ -17,7 +17,7 @@ sockaddr_in Socket::Infos_Host(properties prop) {
 	//adresse.sin_addr.s_addr = inet_addr("192.168.4.138");
 	//struct hostent *infosHost = getaddrinfo();
 
-	struct hostent *infosHost = gethostbyname(prop.machine);
+	struct hostent *infosHost = gethostbyname(prop.address_tcp);
 	if(infosHost == 0) {
 		cout << "Erreur d'acquisition d'infos sur le host " << errno << endl;
 		exit(1);
@@ -25,8 +25,17 @@ sockaddr_in Socket::Infos_Host(properties prop) {
 
 	memset(&adresse, 0, sizeof(struct sockaddr_in));
 	adresse.sin_family = AF_INET;
-	adresse.sin_port = htons(prop.port);
+	adresse.sin_port = htons(prop.port_tcp);
 	memcpy(&adresse.sin_addr, infosHost->h_addr, infosHost->h_length);
+
+	return adresse;
+}
+sockaddr_in Socket::Infos_Host(char* add, char* port) {
+	struct sockaddr_in adresse;
+
+	adresse.sin_addr.s_addr = inet_addr(add);
+	adresse.sin_family = AF_INET;
+	adresse.sin_port = htons(atoi(port));
 
 	return adresse;
 }
@@ -52,68 +61,57 @@ bool Socket::Receive_Message(int hSocketSource, void* message, int flagUrgdest) 
 	return EXIT_SUCCESS;
 }
 
+char* Socket::Sub_Msg(char* ret, char* msg, char sep, char end, int num) {
+	int k = 0;
+	for(int i = 0, j = 0; *(msg+i) != end; i++) {
+		if(*(msg+i) == sep) {
+			j++;
+		} else {
+			if(j == num) {
+				*(ret+k) = *(msg+i);
+				k++;
+			} else if(j > num)
+				break;
+		}
+	}
+	*(ret+k) = '\0';
+	return ret;
+}
+
 
 properties Socket::Load_Properties(const char* nomFichier) {
 	properties prop;
 	FILE* fp;
 
 	fp = fopen(nomFichier, "r+t");
-	if(fp == NULL) {
-		fp = fopen(nomFichier, "w+t");
+	fseek(fp, 0, SEEK_END);
+	int size = ftell(fp);
+	rewind(fp);
 
-		char hostname[200];
-		gethostname(hostname, 200);
+	char txt[200];
+	fread(txt, size, 1, fp);
 
-		prop.machine = (char*)malloc(strlen(hostname));
-		strcpy(prop.machine, hostname);
-		prop.port = PORT;
-		prop.nbServer = NBSERVER;
+	char *word = NULL, *pt = NULL, *param = NULL, *val = NULL;
+	for(int i = 0; ; i++) {
+		word = Read_Line(i, txt);
+		if(word == NULL) break;
+		else {
+			param = strtok_r(word, "=", &pt);
+			word = NULL;
+			val = strtok_r(word, ";", &pt);
 
-		char* txt = (char*)malloc(10);
-
-		fprintf(fp, "Host=");
-		fprintf(fp, IP);
-		txt = NULL;
-
-		fprintf(fp, ";\rPort=");
-		txt = (char*)malloc(sizeof(PORT));
-		sprintf(txt, "%d", PORT);
-		fprintf(fp, txt, sizeof(txt));
-		txt = NULL;
-
-		fprintf(fp, ";\rServers=");
-		txt = (char*)malloc(sizeof(NBSERVER));
-		sprintf(txt, "%d", NBSERVER);
-		fprintf(fp, txt, sizeof(txt));
-
-		fprintf(fp, ";");
-
-		free(txt);
-	} else {
-		fseek(fp, 0, SEEK_END);
-		int size = ftell(fp);
-		rewind(fp);
-
-		char txt[200];
-		fread(txt, size, 1, fp);
-
-		char *word = NULL, *pt = NULL, *param = NULL, *val = NULL;
-		for(int i = 0; ; i++) {
-			word = Read_Line(i, txt);
-			if(word == NULL) break;
-			else {
-				param = strtok_r(word, "=", &pt);
-				word = NULL;
-				val = strtok_r(word, ";", &pt);
-
-				if(strcmp(param, "Host_tcp") == 0) {
-					prop.machine = (char*)malloc(strlen(val));
-					strcpy(prop.machine, val);
-				} else if(strcmp(param, "Port_tcp") == 0) {
-					prop.port = atoi(val);
-				} else if(strcmp(param, "Servers") == 0) {
-					prop.nbServer = atoi(val);
-				}
+			if(strcmp(param, "Host_tcp") == 0) {
+				prop.address_tcp = (char*)malloc(strlen(val));
+				strcpy(prop.address_tcp, val);
+			} else if(strcmp(param, "Port_tcp") == 0) {
+				prop.port_tcp = atoi(val);
+			} else if(strcmp(param, "Servers") == 0) {
+				prop.nbServer = atoi(val);
+			} else if(strcmp(param, "Host_udp") == 0) {
+				prop.address_udp = (char*)malloc(strlen(val));
+				strcpy(prop.address_udp, val);
+			} else if(strcmp(param, "Port_udp") == 0) {
+				prop.port_udp = atoi(val);
 			}
 		}
 	}

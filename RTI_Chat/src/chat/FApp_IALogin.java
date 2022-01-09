@@ -158,7 +158,7 @@ public class FApp_IALogin extends javax.swing.JFrame {
                 // Envoie du message
                 SendMsg(LOGIN_GROUP +"#"+ LOGIN_JAVA +"#"+ login +"#"+ rand +"#"+ digestPwd.length +"$");
                 if(GetMsg()[0].equals("OK"));
-                    SendMsgBytes(digestPwd);
+                    SendMsg(digestPwd);
             } else {
                 SendMsg(LOGIN_GROUP +"#"+ LOGIN_JAVA +"#"+ login +"$");
             }
@@ -181,11 +181,11 @@ public class FApp_IALogin extends javax.swing.JFrame {
     public void SendMsg(String msg) {
         try {
             DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
-            dos.writeUTF(msg); dos.flush();
+            dos.write(msg.getBytes()); dos.flush();
         }
         catch (IOException e) { System.err.println("Error network ? [" + e.getMessage() + "]"); }
     }
-    public void SendMsgBytes(byte[] msg) {
+    public void SendMsg(byte[] msg) {
         try {
             DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
             dos.write(msg); dos.flush();
@@ -202,7 +202,6 @@ public class FApp_IALogin extends javax.swing.JFrame {
 
             int i = 0;
             msg[i] = "";
-            b = dis.readByte(); b = dis.readByte();
             while((b = dis.readByte()) != (byte)'$') {
                 tmp += (char)b;
                 if(b == '#') {

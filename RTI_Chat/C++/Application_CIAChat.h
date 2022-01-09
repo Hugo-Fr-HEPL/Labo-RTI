@@ -11,6 +11,7 @@ using namespace std;
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <netdb.h>
 #include <errno.h>
 #include <netinet/in.h>
@@ -24,10 +25,16 @@ using namespace std;
 #define LOGIN_C "C"
 #define ERROR "ERROR"
 
+
+void ConnectionTCP();
+
+void Login();
+
+void ConnectionUDP(char* add, char* port);
+
 /*
 void MainLoop();
 */
-void Login();
 
 void CloseConnection();
 
