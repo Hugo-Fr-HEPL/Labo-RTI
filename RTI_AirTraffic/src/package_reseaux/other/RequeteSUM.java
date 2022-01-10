@@ -158,6 +158,10 @@ public class RequeteSUM implements Requete, Serializable {
             try {
                 dos = new DataOutputStream(cliSock.getOutputStream());
                 dos.write(msgFonction.getBytes()); dos.flush();
+                
+                msgFonction = GetChargeUtile();
+                DataOutputStream dos2 = new DataOutputStream(cliSock.getOutputStream());
+                dos2.write(msgFonction.getBytes()); dos2.flush();
             }
             catch (IOException e) {
                 System.err.println("Erreur réseau ? [" + e.getMessage() + "]");

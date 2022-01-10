@@ -81,7 +81,8 @@ void MainLoop() {
 
 		char msgServeur[MAXSTRING];
 		sock.Receive_Message(cli.hSock, msgServeur, 0);
-		cout << endl << "Checkin num " << msgServeur << " ferme !" << endl;
+		if(atoi(msgServeur) != 0)
+		cout << endl << "Checkin ferme pour le vol numero : " << msgServeur << endl;
 
 		cout << endl << "Nouveau ticket :" << endl;
 	} while(1);

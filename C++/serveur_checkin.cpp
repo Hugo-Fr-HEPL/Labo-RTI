@@ -441,6 +441,5 @@ void editCheckin(int hSocketServ) {
     char msgServeur[MAXSTRING];
 
 	sock.Receive_Message(hSocketServ, msgServeur, 0);
-    cout << "ici" << msgServeur << endl;
     numCheckinClose = atoi(msgServeur);
 }
