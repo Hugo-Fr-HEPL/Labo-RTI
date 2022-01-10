@@ -6,9 +6,7 @@ import package_reseaux.Interface.*;
 
 import java.io.*;
 import java.net.Socket;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
+import java.security.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Hashtable;
@@ -28,6 +26,7 @@ public class RequeteSUM implements Requete, Serializable {
     public static int DOUANE = 4;
     public static int SOUTE = 5;
     public static int REMARQUE = 6;
+    public static int CHECKINCLOSE = 7;
     
     public static int CONNEXION1 = 11;
 
@@ -75,6 +74,13 @@ public class RequeteSUM implements Requete, Serializable {
                 }
             };
         }
+        else if (type == CHECKINCLOSE) {
+            return new Runnable() {
+                public void run() {
+                    traiteCheckin(s, cs);
+                }
+            };
+        }
         else
             return null;
     }
@@ -115,7 +121,7 @@ public class RequeteSUM implements Requete, Serializable {
             if(m!=null)
             {
                 try {
-                    MessageDigest md = MessageDigest.getInstance("SHA-1", "BC");
+                    MessageDigest md = MessageDigest.getInstance("SHA-1");
 
                     md.update(m.getBytes());
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -124,8 +130,6 @@ public class RequeteSUM implements Requete, Serializable {
                     md.update(baos.toByteArray());
                     msgD = md.digest();
                 } catch (NoSuchAlgorithmException ex) {
-                    Logger.getLogger(Application_Bagages.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (NoSuchProviderException ex) {
                     Logger.getLogger(Application_Bagages.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (IOException ex) {
                     Logger.getLogger(Application_Bagages.class.getName()).log(Level.SEVERE, null, ex);
@@ -280,6 +284,11 @@ public class RequeteSUM implements Requete, Serializable {
         MySQL.MySQL_Request("update bagages set remarques = \"" + GetvChange() + "\" where idbagage = " + GetChargeUtile() + ";");
         
         System.out.println("traiteRemarque FIN");
+    }
+    
+    private void traiteCheckin(Socket sock, ConsoleServeur cs)
+    {
+        System.out.println("ico");
     }
 
     private int type;

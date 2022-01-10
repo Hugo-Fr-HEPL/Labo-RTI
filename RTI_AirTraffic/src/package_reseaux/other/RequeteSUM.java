@@ -135,7 +135,7 @@ public class RequeteSUM implements Requete, Serializable {
         {
             System.out.println("ok 20 min");
 
-            //ENVOYER REQUETE A SERVEUR BAGAGES ET SERVEUR CHECKIN
+            //ENVOYER REQUETE A SERVEUR CHECKIN
             DataOutputStream dos = null;
             Socket cliSock = null;
             
@@ -154,14 +154,39 @@ public class RequeteSUM implements Requete, Serializable {
             }
 
             // Envoie de la requête
-            String msgFonction = "13";
             try {
+                String msgFonction = "13";
                 dos = new DataOutputStream(cliSock.getOutputStream());
                 dos.write(msgFonction.getBytes()); dos.flush();
                 
                 msgFonction = GetChargeUtile();
                 DataOutputStream dos2 = new DataOutputStream(cliSock.getOutputStream());
                 dos2.write(msgFonction.getBytes()); dos2.flush();
+            }
+            catch (IOException e) {
+                System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
+            }
+            
+            
+            //ENVOYER REQUETE A SERVEUR BAGAGES
+            port = Integer.parseInt(prop.getProperty("PORT_CHECKIN"));
+            adresse = (String) prop.getProperty("Host1");
+            
+            try {
+                cliSock = new Socket(adresse, port);
+                System.out.println(cliSock.getInetAddress().toString());
+            }
+            catch (UnknownHostException e) {
+                System.err.println("Erreur ! Host non trouvé [" + e + "]");
+            }
+            catch (IOException e) {
+                System.err.println("Erreur ! Pas de connexion ? [" + e + "]");
+            }
+
+            // Envoie de la requête
+            try {
+                dos = new DataOutputStream(cliSock.getOutputStream());
+                dos.writeUTF(GetChargeUtile()); dos.flush();
             }
             catch (IOException e) {
                 System.err.println("Erreur réseau ? [" + e.getMessage() + "]");

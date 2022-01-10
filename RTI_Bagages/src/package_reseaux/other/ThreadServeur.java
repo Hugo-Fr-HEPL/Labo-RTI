@@ -2,6 +2,7 @@ package package_reseaux.other;
 
 import java.io.*;
 import java.net.*;
+import java.util.Properties;
 
 import package_reseaux.Interface.ConsoleServeur;
 import package_reseaux.Interface.Requete;
@@ -23,6 +24,15 @@ public class ThreadServeur extends Thread {
     }
 
     public void run() {
+        Properties prop = new Properties();
+        try {
+            prop.load(new FileInputStream(GetDirectory.FileDir("properties.txt")));
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
         try {
             SSocket = new ServerSocket(port);
         }
@@ -47,11 +57,17 @@ public class ThreadServeur extends Thread {
 
             System.out.println("Le serveur est connecté");
             try {
-                ObjectInputStream ois = new ObjectInputStream(CSocket.getInputStream());
+                if(CSocket.getLocalPort() == Integer.parseInt(prop.getProperty("PORT_BAGAGES"))) {
+                    ObjectInputStream ois = new ObjectInputStream(CSocket.getInputStream());
 
-                //Reçus
-                req = (Requete) ois.readObject();
-
+                    //Reçus
+                    req = (Requete) ois.readObject();
+                } else {
+                    DataInputStream dis = new DataInputStream(CSocket.getInputStream());
+                    
+                    String msgFinal = dis.readUTF();
+                    req = new RequeteSUM(7, msgFinal);
+                }
             }
             catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();

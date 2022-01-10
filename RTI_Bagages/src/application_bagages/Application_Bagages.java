@@ -3,9 +3,7 @@ package application_bagages;
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
+import java.security.*;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.logging.Level;
@@ -101,7 +99,7 @@ public class Application_Bagages extends javax.swing.JFrame {
         byte[] msgD={};
         
         try {
-            MessageDigest md = MessageDigest.getInstance("SHA-1", "BC");
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
             
             rand = Math.random();
             md.update(TMdp.getText().getBytes());
@@ -112,8 +110,6 @@ public class Application_Bagages extends javax.swing.JFrame {
             msgD = md.digest();
             
         } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(Application_Bagages.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchProviderException ex) {
             Logger.getLogger(Application_Bagages.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(Application_Bagages.class.getName()).log(Level.SEVERE, null, ex);
