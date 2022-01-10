@@ -30,7 +30,7 @@ void ConnectionTCP();
 
 void Login();
 
-void ConnectionUDP(char* add, char* port);
+sockaddr_in ConnectionUDP(char* add, char* port);
 
 /*
 void MainLoop();

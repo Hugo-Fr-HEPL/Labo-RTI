@@ -33,9 +33,10 @@ sockaddr_in Socket::Infos_Host(properties prop) {
 sockaddr_in Socket::Infos_Host(char* add, char* port) {
 	struct sockaddr_in adresse;
 
+	memset(&adresse, 0, sizeof(struct sockaddr_in));
 	adresse.sin_addr.s_addr = inet_addr(add);
-	adresse.sin_family = AF_INET;
 	adresse.sin_port = htons(atoi(port));
+	adresse.sin_family = AF_INET;
 
 	return adresse;
 }

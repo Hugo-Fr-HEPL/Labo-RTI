@@ -20,7 +20,7 @@ int main() {
 	strcpy(nom, sock.Sub_Msg(msg, msgServeur, '#', '$', 2));
 
 
-	ConnectionUDP(addr_udp, port_udp);
+	struct sockaddr_in adresse = ConnectionUDP(addr_udp, port_udp);
 
 
 	strcpy(msg, nom);
@@ -28,7 +28,8 @@ int main() {
 	sendto(cli.hSock, msg, sizeof(msg), 0, (struct sockaddr*)NULL, sizeof(struct sockaddr_in));
 	cout << "oui "<< endl;
 
-	recvfrom(cli.hSock, msgServeur, MAXSTRING, 0, (struct sockaddr*)NULL, NULL);
+	unsigned int tailleSockaddr_in = sizeof(struct sockaddr_in);
+	recvfrom(cli.hSock, msgServeur, MAXSTRING, 0, (struct sockaddr*)&adresse, &tailleSockaddr_in);
 	puts(msgServeur);
 
 	cout << "REcu " << msgServeur << endl;
@@ -55,10 +56,12 @@ void ConnectionTCP() {
 /*
 	Se connecte au canal UDP
 */
-void ConnectionUDP(char* add, char* port) {
+sockaddr_in ConnectionUDP(char* add, char* port) {
 	cli.hSock = sock.Create_Socket(AF_INET, SOCK_DGRAM, 0);
 	struct sockaddr_in adresse = sock.Infos_Host(add, port);
 	sock.Connect_Client(cli.hSock, (struct sockaddr*)&adresse);
+
+	return adresse;
 }
 
 
