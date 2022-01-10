@@ -16,6 +16,9 @@
 #define TIC 10
 #define NB 11
 
+#define END_CHECKIN 12
+#define EDIT_CHECKIN 13
+
 #define CO "Connection"
 #define NO_CO "No Connection"
 

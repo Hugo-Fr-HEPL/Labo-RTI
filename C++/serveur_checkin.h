@@ -22,6 +22,8 @@ int VerifLogin(int socket);
 int VerifTicket(int socket);
 char* VerifLuggage(int socket);
 int PaymentDone(int socket, char* bag);
+void endCheckin(int hSocketServ);
+void editCheckin(int hSocketServ);
 
 
 pthread_mutex_t mutexIndiceCourant;
@@ -32,5 +34,7 @@ pthread_mutex_t mutexFile;
 
 SocketServer sock;
 int indiceCourant = -1;
+
+static int numCheckinClose = 0;
 
 #endif

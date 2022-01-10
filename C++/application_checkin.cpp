@@ -75,6 +75,14 @@ void MainLoop() {
 		sock.Send_Message(cli.hSock, msgClient, 0);
 		Payment();
 
+// Checkin
+		sprintf(msgClient, "%d", END_CHECKIN);
+		sock.Send_Message(cli.hSock, msgClient, 0);
+
+		char msgServeur[MAXSTRING];
+		sock.Receive_Message(cli.hSock, msgServeur, 0);
+		cout << endl << "Checkin num " << msgServeur << " ferme !" << endl;
+
 		cout << endl << "Nouveau ticket :" << endl;
 	} while(1);
 }

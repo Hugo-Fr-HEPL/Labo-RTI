@@ -144,6 +144,12 @@ void* fctThread(void* param) {
                     break;
                 }
                 break;
+            case END_CHECKIN:
+                endCheckin(hSocketServ);
+                break;
+            case EDIT_CHECKIN:
+                editCheckin(hSocketServ);
+                break;
             }
         } while(!finDialogue);
         pthread_mutex_lock(&mutexIndiceCourant);
@@ -421,4 +427,20 @@ int PaymentDone(int hSocketServ, char* bag) {
 	sock.Send_Message(hSocketServ, msgClient, 0);
 
 	return EXIT_SUCCESS;
+}
+
+
+void endCheckin(int hSocketServ) {
+    char msgClient[MAXSTRING];
+
+    sprintf(msgClient, "%d", numCheckinClose);
+	sock.Send_Message(hSocketServ, msgClient, 0);
+}
+
+void editCheckin(int hSocketServ) {
+    char msgServeur[MAXSTRING];
+
+	sock.Receive_Message(hSocketServ, msgServeur, 0);
+    cout << "ici" << msgServeur << endl;
+    numCheckinClose = atoi(msgServeur);
 }
