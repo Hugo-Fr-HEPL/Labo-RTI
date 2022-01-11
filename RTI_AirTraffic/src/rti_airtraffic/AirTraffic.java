@@ -38,9 +38,9 @@ public class AirTraffic {
         return rep.getChargeUtile();   
     }
     
-    public String Ready(String numAvion)
+    public String Ready(String numvol, String numavion)
     {
-        RequeteSUM req = new RequeteSUM(RequeteSUM.READY, numAvion);
+        RequeteSUM req = new RequeteSUM(RequeteSUM.READY, numavion, numvol);
 
         ReponseSUM rep = sendreceive(req);
 

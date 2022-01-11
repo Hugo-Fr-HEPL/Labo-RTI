@@ -119,7 +119,7 @@ void* fctThread(void* param) {
                     }
                 }
                 break;
-            case LOGOUT_OFFICER: // TO DO
+            case LOGOUT_OFFICER:
                 break;
             case CHECK_TICKET:
                 while(1) {

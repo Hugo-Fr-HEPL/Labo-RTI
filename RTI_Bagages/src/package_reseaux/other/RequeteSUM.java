@@ -27,6 +27,7 @@ public class RequeteSUM implements Requete, Serializable {
     public static int SOUTE = 5;
     public static int REMARQUE = 6;
     public static int CHECKINCLOSE = 7;
+    public static int BAGREADY = 8;
     
     public static int CONNEXION1 = 11;
 
@@ -78,6 +79,13 @@ public class RequeteSUM implements Requete, Serializable {
             return new Runnable() {
                 public void run() {
                     traiteCheckin(s, cs);
+                }
+            };
+        }
+        else if (type == BAGREADY) {
+            return new Runnable() {
+                public void run() {
+                    traiteBagReady(s, cs);
                 }
             };
         }
@@ -288,8 +296,29 @@ public class RequeteSUM implements Requete, Serializable {
     
     private void traiteCheckin(Socket sock, ConsoleServeur cs)
     {
-        System.out.println("ico");
+        System.out.println("Need to do pop up for each client");
     }
+    
+    private void traiteBagReady(Socket sock, ConsoleServeur cs)
+    {
+        Properties prop = new Properties();
+        try {
+            prop.load(new FileInputStream(GetDirectory.FileDir("properties.txt")));
+            
+            MySQL.MySQL_Connexion("bd_airport", prop.getProperty("DB_port"), "localhost", prop.getProperty("DB"), prop.getProperty("DB_pwd"));
+            ResultSet rs = MySQL.MySQL_Request("SELECT COUNT(*) FROM billets "+
+                                                "INNER JOIN bagages USING (idbillet)"+
+                                                "WHERE numvol = " + GetChargeUtile() + " AND soute = 'N';");
+            
+            rs.next();
+            DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
+            dos.writeUTF(rs.getInt(1) == 0 ? "ok" : "no");
+            dos.flush();
+        }
+        catch (IOException e) { e.printStackTrace(); }
+        catch (SQLException ex) { Logger.getLogger(RequeteSUM.class.getName()).log(Level.SEVERE, null, ex); }
+    }
+    
 
     private int type;
     private String chargeUtile;

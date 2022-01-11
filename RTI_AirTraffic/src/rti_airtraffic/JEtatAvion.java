@@ -171,10 +171,13 @@ public class JEtatAvion extends javax.swing.JFrame {
         Object checked = DTM.getValueAt(0, 1);
         if(checked!=null)
         {
-            String rep = AT.Ready(infosTab[1]);
+            String rep = AT.Ready(infosTab[0], infosTab[1]);
             
-            DTM.setValueAt(false, 0, 1);
-            DTM.setValueAt(true, 0, 2);
+            if(rep.equals("ok")) {
+                DTM.setValueAt(false, 0, 1);
+                DTM.setValueAt(true, 0, 2);
+            } else
+                JOptionPane.showMessageDialog(this, "Des bagages ne sont pas chargés !" ,"Information",JOptionPane.OK_OPTION);
         }
         else
         {

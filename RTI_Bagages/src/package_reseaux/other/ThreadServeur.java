@@ -65,8 +65,9 @@ public class ThreadServeur extends Thread {
                 } else {
                     DataInputStream dis = new DataInputStream(CSocket.getInputStream());
                     
-                    String msgFinal = dis.readUTF();
-                    req = new RequeteSUM(7, msgFinal);
+                    String msg = dis.readUTF();
+                    int i = msg.indexOf(":");
+                    req = new RequeteSUM(Integer.parseInt(msg.substring(0, i)), msg.substring(i+1));
                 }
             }
             catch (IOException | ClassNotFoundException e) {

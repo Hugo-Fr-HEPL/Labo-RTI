@@ -186,7 +186,7 @@ public class RequeteSUM implements Requete, Serializable {
             // Envoie de la requête
             try {
                 dos = new DataOutputStream(cliSock.getOutputStream());
-                dos.writeUTF(GetChargeUtile()); dos.flush();
+                dos.writeUTF("7:"+GetChargeUtile()); dos.flush();
             }
             catch (IOException e) {
                 System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
@@ -232,20 +232,61 @@ public class RequeteSUM implements Requete, Serializable {
         catch (IOException e) {
             e.printStackTrace();
         }
-        
-        MySQL.MySQL_Connexion("bd_airport", prop.getProperty("DB_port"), "localhost", prop.getProperty("DB"), prop.getProperty("DB_pwd"));
-        MySQL.MySQL_Request("UPDATE avions SET etat = 'Ready' WHERE idAvion = " + GetChargeUtile());
-        
-        ReponseSUM rep = new ReponseSUM(ReponseSUM.READY, "ok");
-        ObjectOutputStream oos;
+            
+            
+        //ENVOYER REQUETE A SERVEUR BAGAGES
+        Socket cliSock = null;
+
+        int port = Integer.parseInt(prop.getProperty("PORT_CHECKIN"));
+        String adresse = (String) prop.get("Host1");
+
         try {
-            oos = new ObjectOutputStream(sock.getOutputStream());
-            oos.writeObject(rep); oos.flush();
-            oos.close();
+            cliSock = new Socket(adresse, port);
+            System.out.println(cliSock.getInetAddress().toString());
+        }
+        catch (UnknownHostException e) {
+            System.err.println("Erreur ! Host non trouvé [" + e + "]");
+        }
+        catch (IOException e) {
+            System.err.println("Erreur ! Pas de connexion ? [" + e + "]");
+        }
+
+        // Envoie de la requête
+        String msg = null;
+        try {
+            DataOutputStream dos = new DataOutputStream(cliSock.getOutputStream());
+            dos.writeUTF("8:"+GetChargeUtile2()); dos.flush();
+                
+            // Read Answer
+            DataInputStream dis = new DataInputStream(cliSock.getInputStream());
+            msg = dis.readUTF();
+            System.out.println("ooiuou " + msg);
         }
         catch (IOException e) {
             System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
         }
+        
+        
+        String msg2 = null;
+        if(msg.equals("ok")) {
+            // Update Frame si tous les bagages sont O ou R
+            MySQL.MySQL_Connexion("bd_airport", prop.getProperty("DB_port"), "localhost", prop.getProperty("DB"), prop.getProperty("DB_pwd"));
+            MySQL.MySQL_Request("UPDATE avions SET etat = 'Ready' WHERE idAvion = " + GetChargeUtile());
+
+            msg2 = "ok";
+        } else
+            msg2 = "no";
+        
+        ReponseSUM rep = new ReponseSUM(ReponseSUM.READY, msg2);
+            ObjectOutputStream oos;
+            try {
+                oos = new ObjectOutputStream(sock.getOutputStream());
+                oos.writeObject(rep); oos.flush();
+                oos.close();
+            }
+            catch (IOException e) {
+                System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
+            }
     }
     
     private void traiteAskTrack(Socket sock, ConsoleServeur cs)
